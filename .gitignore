@@ -1,0 +1,7 @@
+#directories
+node_modules
+release-builds
+
+#files
+*.tgz
+*.log
