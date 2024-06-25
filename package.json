@@ -14,9 +14,9 @@
   "author": "James Sorbello",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^18.3.7",
-    "electron-packager": "^15.1.0",
-    "nodemon": "^2.0.4"
+    "electron": "^31.0.2",
+    "electron-packager": "^17.1.2",
+    "nodemon": "^2.0.22"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
