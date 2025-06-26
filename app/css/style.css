@@ -114,6 +114,14 @@ footer {
 #overlay .instruction {
     padding: 200px 0 10px;
 }
+#progress-text {
+    font-size: 32px;
+    font-weight: 600;
+    text-align: center;
+    color: #fff;
+    margin: 10px 0 20px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
 .sr {
     border: 0;
     clip: rect(0 0 0 0);

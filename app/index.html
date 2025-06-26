@@ -39,8 +39,24 @@
         </footer>
         <div id="overlay">
             <p class="instruction">Converting</p>
+            <p id="progress-text">0%</p>
             <div class="loader-grid"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
         </div>
+        
+        <script>
+            // Test script to check electronAPI
+            window.addEventListener('DOMContentLoaded', () => {
+                console.log('DOM loaded, checking electronAPI...')
+                console.log('electronAPI type:', typeof window.electronAPI)
+                
+                if (window.electronAPI) {
+                    console.log('electronAPI methods:', Object.keys(window.electronAPI))
+                } else {
+                    console.error('electronAPI is undefined!')
+                }
+            })
+        </script>
+        
         <script src="js/index.js"></script>
     </body>
 </html>

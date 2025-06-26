@@ -1,33 +1,85 @@
 const path = require('path')
 const os = require('os')
-const { app, BrowserWindow, Menu, ipcMain, shell } = require('electron')
+const { app, BrowserWindow, Menu, ipcMain, shell, dialog } = require('electron')
+
+// Global error handling
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error)
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+})
+
+// Set environment - force production for packaged apps
+if (app.isPackaged) {
+    process.env.NODE_ENV = 'production'
+    console.log('App is packaged, setting NODE_ENV to production')
+} else {
+    console.log('App is not packaged, keeping development mode')
+}
+
+// Load dependencies
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg')
 const ffmpeg = require('fluent-ffmpeg')
 const slash = require('slash')
 
-// Set environment
-process.env.NODE_ENV = 'production'
-
 // Set ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegPath.path);
-console.log(ffmpegPath.path, ffmpegPath.version);
+console.log('FFmpeg path:', ffmpegPath.path, 'Version:', ffmpegPath.version);
 
 const isDev = process.env.NODE_ENV !== 'production' ? true : false
 const isMac = process.platform === 'darwin' ? true : false
 
+console.log('Environment check:')
+console.log('- NODE_ENV:', process.env.NODE_ENV)
+console.log('- isDev:', isDev)
+console.log('- isMac:', isMac)
+console.log('- app.isPackaged:', app.isPackaged)
+
 let mainWindow
 let aboutWindow
+
+// Set up IPC handlers before creating windows
+function setupIPC() {
+    // Dialog IPC handlers
+    ipcMain.handle('dialog:openFile', async (event, options) => {
+        const result = await dialog.showOpenDialog(mainWindow, options)
+        return result
+    })
+
+    ipcMain.handle('dialog:saveFile', async (event, options) => {
+        const result = await dialog.showSaveDialog(mainWindow, options)
+        return result
+    })
+
+    // Path helper
+    ipcMain.handle('get-default-path', async (event, type) => {
+        if (type === 'desktop') {
+            return path.join(os.homedir(), 'Desktop')
+        } else if (type === 'saveFile') {
+            return path.join(os.homedir(), 'Desktop', `tesselate${Date.now()}.mp4`)
+        }
+        return os.homedir()
+    })
+
+    ipcMain.on('video:convert', (e, options) => {
+        console.log(options)
+        convertVideo(options)
+    })
+}
 
 function createMainWindow() {
     mainWindow = new BrowserWindow({
         title: 'Tessel',
         width: isDev ? 800 : 450,
         height: 600,
-        icon: `${__dirname}/assets/icons/icon-256.png`,
+        icon: path.join(__dirname, 'assets/icons/icon-256.png'),
         resizable: isDev ? true : false,
         webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js')
         }
     })
 
@@ -35,7 +87,7 @@ function createMainWindow() {
         mainWindow.webContents.openDevTools()
     }
 
-    mainWindow.loadFile('./app/index.html')
+    mainWindow.loadFile(path.join(__dirname, 'app/index.html'))
 }
 
 function createAboutWindow() {
@@ -43,14 +95,19 @@ function createAboutWindow() {
         title: 'About Tessel',
         width: 300,
         height: 300,
-        icon: `${__dirname}/assets/icons/icon-256.png`,
+        icon: path.join(__dirname, 'assets/icons/icon-256.png'),
         resizable: false,
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true
+        }
     })
 
-    aboutWindow.loadFile('./app/about.html')
+    aboutWindow.loadFile(path.join(__dirname, 'app/about.html'))
 }
 
 app.on('ready', () => {
+    setupIPC()
     createMainWindow()
 
     const mainMenu = Menu.buildFromTemplate(menu)
@@ -90,11 +147,6 @@ const menu = [
         ]
     : []),
 ]
-
-ipcMain.on('video:convert', (e, options) => {
-    console.log(options)
-    convertVideo(options)
-})
 
 function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, filePath }) {
     try {
@@ -150,7 +202,19 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, filePath }) {
                     console.log('An error occurred: ' + err.message);
                 })	
                 .on('progress', function (progress) {
-                    console.log('Processing: ' + progress.percent + '% done')
+                    console.log('Progress object:', progress)
+                    let percent = progress.percent || 
+                                 (progress.timemark && progress.targetSize ? 
+                                  Math.round((progress.targetSize / 1000) * 0.1) : 
+                                  'calculating...')
+                    console.log('Processing: ' + percent + '% done')
+                    
+                    // Send progress to renderer
+                    if (mainWindow && mainWindow.webContents) {
+                        mainWindow.webContents.send('video:progress', {
+                            percent: typeof percent === 'number' ? Math.round(percent) : percent
+                        })
+                    }
                 })
                 .on('end', function () {
                     console.log('Processing finished !')
