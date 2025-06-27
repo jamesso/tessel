@@ -8,10 +8,61 @@ if (window.electronAPI) {
     console.error('electronAPI is NOT available!')
 }
 
+// Grid toggle functionality
+document.getElementById('grid-2x2').addEventListener('click', function() {
+    switchGrid('2x2')
+})
+
+document.getElementById('grid-3x3').addEventListener('click', function() {
+    switchGrid('3x3')
+})
+
+function switchGrid(gridType) {
+    currentGrid = gridType
+    const videoGrid = document.getElementById('video-grid')
+    const gridButtons = document.querySelectorAll('.grid-btn')
+    
+    // Update active button
+    gridButtons.forEach(btn => btn.classList.remove('active'))
+    document.getElementById('grid-' + gridType).classList.add('active')
+    
+    // Update grid class
+    videoGrid.className = 'main-block container grid-' + gridType
+    
+    // Show/hide dropzones based on grid type
+    const allDropzones = document.querySelectorAll('.dropzone')
+    allDropzones.forEach((dz, index) => {
+        if (gridType === '2x2') {
+            // Show first 4, hide rest
+            if (index < 4) {
+                dz.classList.remove('hidden')
+            } else {
+                dz.classList.add('hidden')
+                // Clear hidden dropzones
+                const vidNum = index + 1
+                window['vidPath' + vidNum] = undefined
+                dz.classList.remove('file')
+                dz.classList.add('empty')
+            }
+        } else if (gridType === '3x3') {
+            // Show all 9
+            dz.classList.remove('hidden')
+        }
+    })
+}
+
 var vidPath1 = undefined
 var vidPath2 = undefined
 var vidPath3 = undefined
 var vidPath4 = undefined
+var vidPath5 = undefined
+var vidPath6 = undefined
+var vidPath7 = undefined
+var vidPath8 = undefined
+var vidPath9 = undefined
+var currentGrid = '2x2' // Default grid type
+
+// File drop handling is now done directly in the ondrop event handlers
 
 //On select
 let dz = document.querySelectorAll('.dropzone');
@@ -22,6 +73,7 @@ for (let i = 0; i < dz.length; i++){
     let vidNum = options[1];
     let maxFiles = parseInt(options[2]);
 
+    // Add drag and drop handlers
     dz[i].ondragover = () => {
         dz[i].classList.add("hover");
         dz[i].classList.add("copy");
@@ -38,18 +90,50 @@ for (let i = 0; i < dz.length; i++){
         return false;
     };
 
-    dz[i].ondrop = (e) => {
+    dz[i].ondrop = async (e) => {
         e.preventDefault();
         dz[i].classList.remove("hover");
         dz[i].classList.remove("copy");
-        for (let f of e.dataTransfer.files) {
-            console.log('File(s) you dragged here: ', f.path)
-            window['vidPath' + vidNum] = f.path
+        
+        const files = e.dataTransfer.files;
+        console.log('Files dropped:', files.length);
+        
+        if (files.length > 0) {
+            const file = files[0]; // Only use the first file
+            console.log('Processing file:', file.name, 'Type:', file.type, 'Path:', file.path);
+            
+            // Check if it's a video file
+            if (!file.type.startsWith('video/')) {
+                console.warn('File is not a video:', file.type);
+                alert('Please drop a video file (MP4, MOV, etc.)');
+                return false;
+            }
+            
+            // Get file path using webUtils API
+            const filePath = window.electronAPI.getPathForFile(file);
+            console.log('webUtils.getPathForFile result:', filePath);
+            
+            if (filePath) {
+                console.log('Successfully got file path:', filePath);
+                window['vidPath' + vidNum] = filePath;
+                dz[i].classList.remove("empty");
+                dz[i].classList.add("file");
+                
+                // Update dropzone icons
+                const emptyIcon = dz[i].querySelector('.empty-icon');
+                const fileIcon = dz[i].querySelector('.file-icon');
+                if (emptyIcon) emptyIcon.classList.add('hidden');
+                if (fileIcon) fileIcon.classList.remove('hidden');
+            } else {
+                console.error('Failed to get file path via webUtils');
+                alert('Could not access the dropped file. Please use click-to-select instead.');
+            }
         }
-        dz[i].classList.remove("empty");
-        dz[i].classList.add("file");
+        
         return false;
     };
+
+    // Click handler
     dz[i].onclick = async (e) => {
         e.preventDefault()
         
@@ -74,6 +158,12 @@ for (let i = 0; i < dz.length; i++){
                 window['vidPath' + vidNum] = filePaths.toString()
                 dz[i].classList.remove("empty");
                 dz[i].classList.add("file");
+                
+                // Update dropzone icons
+                const emptyIcon = dz[i].querySelector('.empty-icon');
+                const fileIcon = dz[i].querySelector('.file-icon');
+                if (emptyIcon) emptyIcon.classList.add('hidden');
+                if (fileIcon) fileIcon.classList.remove('hidden');
             } 
         } catch (err) {
             console.log('Open failed:', err)
@@ -93,23 +183,31 @@ document.getElementById('convert').addEventListener('click', async (e) => {
         ]
     }
     try {
-        if (!vidPath1 || !vidPath2 || !vidPath3 || !vidPath4) {
-            console.log("missing files")
+        // Check if at least one video is selected
+        if (!vidPath1 && !vidPath2 && !vidPath3 && !vidPath4 && !vidPath5 && !vidPath6 && !vidPath7 && !vidPath8 && !vidPath9) {
+            console.log("No videos selected")
+            alert("Please select at least one video file")
             return;
-        } else { 
-            const { filePath } = await electronAPI.showSaveDialog(options)
-            if (!filePath) { 
-                return;
-            } else {
-                electronAPI.send('video:convert', {
-                    vidPath1,
-                    vidPath2,
-                    vidPath3,
-                    vidPath4,
-                    filePath,
-                })
-                document.getElementById("overlay").style.display = "block";
-            }
+        }
+        
+        const { filePath } = await electronAPI.showSaveDialog(options)
+        if (!filePath) { 
+            return;
+        } else {
+            electronAPI.send('video:convert', {
+                vidPath1,
+                vidPath2,
+                vidPath3,
+                vidPath4,
+                vidPath5,
+                vidPath6,
+                vidPath7,
+                vidPath8,
+                vidPath9,
+                gridType: currentGrid,
+                filePath,
+            })
+            document.getElementById("overlay").style.display = "block";
         }
     } catch (err) {
         console.log('Save failed:', err)
@@ -159,12 +257,23 @@ document.querySelector('.logo').addEventListener('click', (e) => {
     vidPath2 = undefined
     vidPath3 = undefined
     vidPath4 = undefined
+    vidPath5 = undefined
+    vidPath6 = undefined
+    vidPath7 = undefined
+    vidPath8 = undefined
+    vidPath9 = undefined
     
     let clear = document.querySelectorAll('.file')
     console.log(clear);
     for (let i = 0; i < clear.length; i++){
         clear[i].classList.add("empty")
         clear[i].classList.remove("file")
+        
+        // Reset icons
+        const emptyIcon = clear[i].querySelector('.empty-icon');
+        const fileIcon = clear[i].querySelector('.file-icon');
+        if (emptyIcon) emptyIcon.classList.remove('hidden');
+        if (fileIcon) fileIcon.classList.add('hidden');
     }
     console.log("clear")
 })

@@ -1,7 +1,7 @@
 {
   "name": "tessel",
   "productName": "Tessel",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Desktop app for creating mosaic videos",
   "main": "main.js",
   "scripts": {

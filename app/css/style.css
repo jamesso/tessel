@@ -30,7 +30,50 @@ main {
 .main-block {
     display: grid;
     grid-gap: 17px 17px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    aspect-ratio: 16/9;
+}
+.main-block.grid-2x2 {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+.main-block.grid-3x3 {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+}
+.main-block.grid-3x3 .dropzone {
+    min-height: 50px;
+}
+.grid-toggle {
+    text-align: center;
+    margin: 15px 0;
+}
+.grid-btn {
+    background-color: #1a202c;
+    color: #fff;
+    border: 2px solid #1a202c;
+    border-radius: 4px;
+    padding: 10px 20px;
+    margin: 0 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+.grid-btn:hover {
+    border-color: #fff;
+}
+.grid-btn.active {
+    background-color: #fff;
+    color: #1a202c;
+    border-color: #fff;
+}
+.dropzone.hidden {
+    display: none;
 }
 .instruction {
     font-size: 18px;
@@ -46,8 +89,13 @@ main {
     border: 2px solid #1a202c;
     border-radius: 4px;
     box-shadow: 0 10px 15px -3px #1a202d,0 4px 6px -2px #303a54;
-    height: 130px;
     cursor: pointer;
+    aspect-ratio: 16/9;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
 }
 .dropzone:hover, .dropzone.hover {
     border: 2px solid #fff;
@@ -55,23 +103,38 @@ main {
 body .copy {
     cursor: copy;
 }
-.empty:after {
-    content: '\002B';
-    font-size: 80px;
-    line-height: 115px;
-    text-align: center;
-    display: inline-grid;
-    width: 100%;
-    height: 100%;
+.dropzone-icon {
+    color: #fff;
+    user-select: none;
+    pointer-events: none;
 }
-.file:after {
-    content: '\2713';
+.empty-icon {
     font-size: 60px;
-    line-height: 125px;
-    text-align: center;
-    display: inline-grid;
-    width: 100%;
-    height: 100%;
+    transform: translateY(-5px);
+}
+.file-icon {
+    font-size: 45px;
+    transform: translateY(-3px);
+}
+.grid-3x3 .empty-icon {
+    font-size: 40px;
+    transform: translateY(-4px);
+}
+.grid-3x3 .file-icon {
+    font-size: 30px;
+    transform: translateY(-2px);
+}
+.dropzone.empty .empty-icon {
+    display: block;
+}
+.dropzone.empty .file-icon {
+    display: none;
+}
+.dropzone.file .empty-icon {
+    display: none;
+}
+.dropzone.file .file-icon {
+    display: block;
 }
 footer {
     padding: 20px 30px 30px;
@@ -112,7 +175,7 @@ footer {
     transition: opacity 500ms ease;
 }
 #overlay .instruction {
-    padding: 200px 0 10px;
+    padding: 175px 0 10px;
 }
 #progress-text {
     font-size: 32px;

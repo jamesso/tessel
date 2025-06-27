@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer, webUtils } = require('electron')
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
   receive: (channel, func) => {
-    let validChannels = ['video:done', 'video:progress', 'video:error']
+    let validChannels = ['video:progress', 'video:done', 'video:error']
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender` 
       ipcRenderer.on(channel, (event, ...args) => func(...args))
@@ -31,5 +31,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Get default paths from main process
   getDefaultPath: (type) => {
     return ipcRenderer.invoke('get-default-path', type)
+  },
+  
+
+  
+  // Get file path using webUtils API
+  getPathForFile: (file) => {
+    try {
+      return webUtils.getPathForFile(file)
+    } catch (error) {
+      console.error('webUtils.getPathForFile failed:', error)
+      return null
+    }
   }
 }) 
