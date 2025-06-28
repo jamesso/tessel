@@ -119,11 +119,13 @@ for (let i = 0; i < dz.length; i++){
                 dz[i].classList.remove("empty");
                 dz[i].classList.add("file");
                 
-                // Update dropzone icons
+                // Update dropzone icons and close button
                 const emptyIcon = dz[i].querySelector('.empty-icon');
                 const fileIcon = dz[i].querySelector('.file-icon');
+                const closeBtn = dz[i].querySelector('.close-btn');
                 if (emptyIcon) emptyIcon.classList.add('hidden');
                 if (fileIcon) fileIcon.classList.remove('hidden');
+                if (closeBtn) closeBtn.classList.remove('hidden');
             } else {
                 console.error('Failed to get file path via webUtils');
                 alert('Could not access the dropped file. Please use click-to-select instead.');
@@ -159,11 +161,13 @@ for (let i = 0; i < dz.length; i++){
                 dz[i].classList.remove("empty");
                 dz[i].classList.add("file");
                 
-                // Update dropzone icons
+                // Update dropzone icons and close button
                 const emptyIcon = dz[i].querySelector('.empty-icon');
                 const fileIcon = dz[i].querySelector('.file-icon');
+                const closeBtn = dz[i].querySelector('.close-btn');
                 if (emptyIcon) emptyIcon.classList.add('hidden');
                 if (fileIcon) fileIcon.classList.remove('hidden');
+                if (closeBtn) closeBtn.classList.remove('hidden');
             } 
         } catch (err) {
             console.log('Open failed:', err)
@@ -247,12 +251,13 @@ electronAPI.receive('video:done', () => {
     if (progressText) {
         progressText.textContent = '0%'
     }
+    
+    // Clear all video positions after successful conversion
+    clearAllVideos()
 })
 
-// On clear
-document.querySelector('.logo').addEventListener('click', (e) => {
-    e.preventDefault()
-
+// Function to clear all video positions
+function clearAllVideos() {
     vidPath1 = undefined
     vidPath2 = undefined
     vidPath3 = undefined
@@ -264,16 +269,61 @@ document.querySelector('.logo').addEventListener('click', (e) => {
     vidPath9 = undefined
     
     let clear = document.querySelectorAll('.file')
-    console.log(clear);
+    console.log('Clearing', clear.length, 'video positions');
     for (let i = 0; i < clear.length; i++){
         clear[i].classList.add("empty")
         clear[i].classList.remove("file")
         
-        // Reset icons
+        // Reset icons and close button
         const emptyIcon = clear[i].querySelector('.empty-icon');
         const fileIcon = clear[i].querySelector('.file-icon');
+        const closeBtn = clear[i].querySelector('.close-btn');
         if (emptyIcon) emptyIcon.classList.remove('hidden');
         if (fileIcon) fileIcon.classList.add('hidden');
+        if (closeBtn) closeBtn.classList.add('hidden');
     }
-    console.log("clear")
+    console.log("Videos cleared")
+}
+
+// Function to clear individual video position
+function clearVideo(videoNum) {
+    console.log('Clearing video position:', videoNum)
+    
+    // Clear the video path variable
+    window['vidPath' + videoNum] = undefined
+    
+    // Find the corresponding dropzone
+    const dropzone = document.getElementById(`video-${videoNum}-1`)
+    if (dropzone) {
+        dropzone.classList.add("empty")
+        dropzone.classList.remove("file")
+        
+        // Reset icons and close button
+        const emptyIcon = dropzone.querySelector('.empty-icon');
+        const fileIcon = dropzone.querySelector('.file-icon');
+        const closeBtn = dropzone.querySelector('.close-btn');
+        if (emptyIcon) emptyIcon.classList.remove('hidden');
+        if (fileIcon) fileIcon.classList.add('hidden');
+        if (closeBtn) closeBtn.classList.add('hidden');
+    }
+}
+
+// Add event listeners for close buttons
+document.addEventListener('DOMContentLoaded', () => {
+    const closeButtons = document.querySelectorAll('.close-btn')
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault()
+            e.stopPropagation() // Prevent triggering the dropzone click
+            
+            const videoNum = btn.getAttribute('data-video')
+            clearVideo(videoNum)
+        })
+    })
+})
+
+// On clear (logo click)
+document.querySelector('.logo').addEventListener('click', (e) => {
+    e.preventDefault()
+    clearAllVideos()
 })

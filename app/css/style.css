@@ -136,6 +136,52 @@ body .copy {
 .dropzone.file .file-icon {
     display: block;
 }
+
+.close-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(255, 255, 255, 1);
+    color: #1a202c;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s ease;
+    line-height: 0.11;
+    padding: 0;
+}
+
+.close-btn:hover {
+    background-color: #ff4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+.close-btn:active {
+    transform: scale(0.95);
+}
+
+.dropzone.empty .close-btn {
+    display: none;
+}
+
+.dropzone.file .close-btn {
+    display: flex;
+}
+
+.grid-3x3 .close-btn {
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+}
 footer {
     padding: 20px 30px 30px;
 }
@@ -170,7 +216,7 @@ footer {
     right: 0;
     bottom: 0;
     background-color: rgba(0,0,0,0.9);
-    z-index: 2;
+    z-index: 100;
     cursor: pointer;
     transition: opacity 500ms ease;
 }
