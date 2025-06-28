@@ -80,21 +80,24 @@ jobs:
     - name: Build package
       run: npm run ${{ matrix.script }}
 
-    - name: Create archive (Unix)
+    - name: Rename and create archive (Unix)
       if: matrix.os != 'windows-latest'
       run: |
         cd release-builds
         if [ "${{ matrix.platform }}" = "darwin" ]; then
-          tar -czf tessel-macos-${{ matrix.arch }}.tar.gz Tessel-${{ matrix.platform }}-${{ matrix.arch }}
+          mv "Tessel-${{ matrix.platform }}-${{ matrix.arch }}" "tessel-macos-${{ matrix.arch }}"
+          tar -czf tessel-macos-${{ matrix.arch }}.tar.gz tessel-macos-${{ matrix.arch }}
         else
-          tar -czf tessel-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz Tessel-${{ matrix.platform }}-${{ matrix.arch }}
+          mv "Tessel-${{ matrix.platform }}-${{ matrix.arch }}" "tessel-${{ matrix.platform }}-${{ matrix.arch }}"
+          tar -czf tessel-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz tessel-${{ matrix.platform }}-${{ matrix.arch }}
         fi
 
-    - name: Create archive (Windows)
+    - name: Rename and create archive (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd release-builds
-        Compress-Archive -Path "Tessel-${{ matrix.platform }}-${{ matrix.arch }}" -DestinationPath "tessel-windows-${{ matrix.arch }}.zip"
+        Rename-Item "Tessel-${{ matrix.platform }}-${{ matrix.arch }}" "tessel-windows-${{ matrix.arch }}"
+        Compress-Archive -Path "tessel-windows-${{ matrix.arch }}" -DestinationPath "tessel-windows-${{ matrix.arch }}.zip"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -140,6 +143,21 @@ jobs:
           - **Windows (x64)**: Download `tessel-windows-x64.zip` for 64-bit Windows systems
           
           ### Installation
+          
+          #### macOS Users - Important Security Notice
+          Due to Apple's security requirements, you may see a "damaged app" warning when first opening Tessel. This is normal for apps not distributed through the App Store. To run Tessel safely:
+          
+          **Option 1 (Recommended):**
+          1. Extract the downloaded archive
+          2. **Right-click** on `Tessel.app` and select "Open" (don't double-click)
+          3. Click "Open" when prompted about the unidentified developer
+          
+          **Option 2 (Terminal):**
+          1. Extract the downloaded archive
+          2. Open Terminal and run: `xattr -dr com.apple.quarantine /path/to/Tessel.app`
+          3. Then double-click to open normally
+          
+          #### Other Platforms
           1. Download the appropriate package for your platform
           2. Extract the archive
           3. Run the Tessel executable
