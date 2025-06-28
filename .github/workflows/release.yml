@@ -1,0 +1,215 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version-changed: ${{ steps.check.outputs.changed }}
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+    
+    - name: Get current version
+      id: get-version
+      run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+    
+    - name: Check if version changed
+      id: check
+      run: |
+        if git diff HEAD~1 HEAD --name-only | grep -q "package.json"; then
+          if git diff HEAD~1 HEAD package.json | grep -q '"version"'; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Version changed in package.json"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "package.json changed but version did not"
+          fi
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+          echo "package.json not changed"
+        fi
+
+  update-about:
+    needs: check-version
+    if: needs.check-version.outputs.version-changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update version in about.html
+      run: |
+        VERSION="${{ needs.check-version.outputs.version }}"
+        sed -i "s/<span>Version<\/span> [0-9]\+\.[0-9]\+\.[0-9]\+/<span>Version<\/span> $VERSION/g" app/about.html
+        
+    - name: Commit updated about.html
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add app/about.html
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update version to ${{ needs.check-version.outputs.version }} in about.html"
+          git push
+        fi
+
+  build:
+    needs: [check-version, update-about]
+    if: needs.check-version.outputs.version-changed == 'true'
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            script: package-mac
+            artifact-name: tessel-macos-arm64
+            file-pattern: "release-builds/tessel-darwin-arm64/**/*"
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            script: package-linux
+            artifact-name: tessel-linux-x64
+            file-pattern: "release-builds/tessel-linux-x64/**/*"
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            script: package-win
+            artifact-name: tessel-windows-x64
+            file-pattern: "release-builds/tessel-win32-x64/**/*"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build package
+      run: npm run ${{ matrix.script }}
+
+    - name: Create archive (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd release-builds
+        if [ "${{ matrix.platform }}" = "darwin" ]; then
+          tar -czf tessel-macos-${{ matrix.arch }}.tar.gz tessel-${{ matrix.platform }}-${{ matrix.arch }}
+        else
+          tar -czf tessel-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz tessel-${{ matrix.platform }}-${{ matrix.arch }}
+        fi
+
+    - name: Create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd release-builds
+        Compress-Archive -Path "tessel-${{ matrix.platform }}-${{ matrix.arch }}" -DestinationPath "tessel-windows-${{ matrix.arch }}.zip"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact-name }}
+        path: |
+          release-builds/*.tar.gz
+          release-builds/*.zip
+        retention-days: 30
+
+  release:
+    needs: [check-version, build]
+    if: needs.check-version.outputs.version-changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Display structure of downloaded files
+      run: ls -la artifacts/
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ needs.check-version.outputs.version }}
+        release_name: Tessel v${{ needs.check-version.outputs.version }}
+        body: |
+          ## Tessel v${{ needs.check-version.outputs.version }}
+          
+          ### Downloads
+          - **macOS (ARM64)**: Download `tessel-macos-arm64.tar.gz` for Apple Silicon Macs
+          - **Linux (x64)**: Download `tessel-linux-x64.tar.gz` for 64-bit Linux systems  
+          - **Windows (x64)**: Download `tessel-windows-x64.zip` for 64-bit Windows systems
+          
+          ### Installation
+          1. Download the appropriate package for your platform
+          2. Extract the archive
+          3. Run the Tessel executable
+          
+          ### Features
+          - Create mosaic videos
+          - Support for 2x2 and 3x3 grids
+          - Drag and drop file support
+          - Real-time conversion progress
+          
+          ### Changes
+          See the commit history for detailed changes in this version.
+        draft: false
+        prerelease: false
+
+    - name: Upload macOS Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/tessel-macos-arm64/tessel-macos-arm64.tar.gz
+        asset_name: tessel-macos-arm64.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload Linux Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/tessel-linux-x64/tessel-linux-x64.tar.gz
+        asset_name: tessel-linux-x64.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload Windows Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/tessel-windows-x64/tessel-windows-x64.zip
+        asset_name: tessel-windows-x64.zip
+        asset_content_type: application/zip 
