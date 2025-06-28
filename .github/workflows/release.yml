@@ -114,16 +114,16 @@ jobs:
       run: |
         cd release-builds
         if [ "${{ matrix.platform }}" = "darwin" ]; then
-          tar -czf tessel-macos-${{ matrix.arch }}.tar.gz tessel-${{ matrix.platform }}-${{ matrix.arch }}
+          tar -czf tessel-macos-${{ matrix.arch }}.tar.gz Tessel-${{ matrix.platform }}-${{ matrix.arch }}
         else
-          tar -czf tessel-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz tessel-${{ matrix.platform }}-${{ matrix.arch }}
+          tar -czf tessel-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz Tessel-${{ matrix.platform }}-${{ matrix.arch }}
         fi
 
     - name: Create archive (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd release-builds
-        Compress-Archive -Path "tessel-${{ matrix.platform }}-${{ matrix.arch }}" -DestinationPath "tessel-windows-${{ matrix.arch }}.zip"
+        Compress-Archive -Path "Tessel-${{ matrix.platform }}-${{ matrix.arch }}" -DestinationPath "tessel-windows-${{ matrix.arch }}.zip"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
