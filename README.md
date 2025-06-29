@@ -12,8 +12,8 @@ A modern desktop application for creating stunning mosaic videos. Combine multip
 
 <table>
   <tr>
-    <td><img src="assets/screenshots/2x2.png" alt="2x2 Grid" width="300"></td>
-    <td><img src="assets/screenshots/3x3.png" alt="3x3 Grid" width="300"></td>
+    <td><img src="assets/screenshots/2x2.png" alt="2x2 Grid" width="400"></td>
+    <td><img src="assets/screenshots/3x3.png" alt="3x3 Grid" width="400"></td>
   </tr>
   <tr>
     <td align="center"><em>2x2 Grid</em></td>
