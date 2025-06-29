@@ -8,6 +8,19 @@ A modern desktop application for creating stunning mosaic videos. Combine multip
   <img alt="Tessel Logo" src="assets/logo-dark.svg">
 </picture>
 
+## Screenshots
+
+<div style="display: flex; gap: 20px;">
+  <div>
+    <img src="assets/screenshots/2x2.png" alt="2x2 Grid" width="400">
+    <p align="center"><em>2x2 Grid</em></p>
+  </div>
+  <div>
+    <img src="assets/screenshots/3x3.png" alt="3x3 Grid" width="400">
+    <p align="center"><em>3x3 Grid</em></p>
+  </div>
+</div>
+
 ## Features
 
 - **Multiple Grid Layouts**: Create 2x2 or 3x3 video mosaics
