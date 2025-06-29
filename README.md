@@ -2,7 +2,7 @@
 
 A modern desktop application for creating stunning mosaic videos. Combine multiple video files into beautiful 2x2 or 3x3 grid layouts with real-time progress tracking.
 
-![Tessel Logo](assets/icons/icon-256.png)
+![Tessel Logo](assets/logo.svg)
 
 ## Features
 
