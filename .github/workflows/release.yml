@@ -178,10 +178,10 @@ jobs:
         3. Run the Tessel executable
         
         ### Features
-        - Create mosaic videos
-        - Support for 2x2 and 3x3 grids
-        - Drag and drop file support
-        - Real-time conversion progress
+        - 2×2 and 3×3 mosaics with clip names and multi-file drop
+        - 720p or 1080p, mute or first-clip audio, letterbox or crop
+        - Cancel an in-progress convert; grid stays filled after success
+        - MP4, MOV, M4V, WebM, AVI, and MKV inputs
         
         ### Changes
         See the commit history for detailed changes in this version.

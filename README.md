@@ -23,13 +23,14 @@ A modern desktop application for creating stunning mosaic videos. Combine multip
 
 ## Features
 
-- **Multiple Grid Layouts**: Create 2x2 or 3x3 video mosaics
-- **Flexible Input**: Works with 1-9 videos (missing slots filled with black)
-- **Drag & Drop Support**: Easy file selection with drag and drop interface
-- **Real-time Progress**: Live conversion progress with percentage display
-- **Cross-platform**: Available for macOS, Windows, and Linux
-- **Modern UI**: Clean, intuitive interface with visual feedback
-- **High Quality Output**: Maintains video quality in mosaic format
+- **Multiple Grid Layouts**: Create 2×2 or 3×3 video mosaics
+- **Flexible Input**: Works with 1–9 videos (empty slots filled with black)
+- **Drag & Drop**: Drop one file to fill or replace a slot, or drop several to fill from that cell
+- **Clip names**: Filled cells show the file name so you can tell clips apart
+- **Output settings**: Choose 1280×720 or 1920×1080, mute or keep audio from the first clip, and letterbox or crop each cell
+- **Convert session**: Live progress, cancel an in-progress encode, and keep the grid after success so you can tweak and export again
+- **Cross-platform**: macOS (Apple Silicon), Windows, and Linux
+- **High Quality Output**: H.264 MP4 mosaic with yuv420p for player compatibility
 
 ## Installation
 
@@ -64,14 +65,13 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 
 ## Usage
 
-1. **Select Grid Layout**: Choose between 2x2 or 3x3 grid using the toggle buttons
-2. **Add Videos**: 
-   - Drag and drop video files onto the grid squares
-   - Or click on squares to browse and select files
-   - Supports MP4 and other common video formats
-3. **Arrange Layout**: Videos will be positioned in the order you add them
-4. **Convert**: Click the "Convert" button and choose where to save your mosaic video
-5. **Monitor Progress**: Watch real-time conversion progress with percentage display
+1. **Select Grid Layout**: Choose 2×2 or 3×3 with the toggle buttons
+2. **Add Videos**:
+   - Drag and drop onto a cell (one file replaces that slot; several fill consecutive empty slots)
+   - Or click a cell to browse (MP4, MOV, M4V, WebM, AVI, MKV)
+3. **Output settings**: Pick resolution, whether to mute or use the first clip’s audio, and letterbox vs crop
+4. **Convert**: Click Convert and choose where to save the mosaic
+5. **Progress**: Watch the percentage. Cancel if you need to stop. On success the grid stays filled so you can export again
 
 ### Supported Video Formats
 
@@ -85,11 +85,12 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 
 ## Technical Details
 
-- **Built with**: Electron 44.0.0
-- **Video Processing**: Bundled FFmpeg 6.x (`ffmpeg-static`) via spawn
-- **Architecture**: Modern Electron with context isolation and security best practices
-- **Output Format**: MP4 with H.264 encoding at 25fps
-- **Resolution**: 1280x720 output resolution
+- **Built with**: Electron 44.x
+- **Video Processing**: Bundled FFmpeg 6.x (`ffmpeg-static`) via spawn (`-nostdin`)
+- **Architecture**: Context isolation, sandboxed preload (no Node `require` of app modules), asar package with ffmpeg unpacked
+- **Output Format**: MP4, H.264 (`veryfast`), 25 fps, yuv420p
+- **Resolution**: 1280×720 or 1920×1080 (selectable)
+- **Tests**: `npm test` (`node --test`)
 
 ## Development
 
@@ -113,13 +114,16 @@ npm run dev
 
 # Run the app once without nodemon (unpackaged Electron — not a distributable build)
 npm start
+
+# Unit tests (node:test)
+npm test
 ```
 
 For **production / distributable** binaries, use the packager scripts in [Building Releases](#building-releases) below (`npm run package-mac`, `package-win`, or `package-linux`).
 
 ### Cutting a GitHub Release
 
-1. Bump `"version"` in `package.json` (the About page still shows `1.4.0` until it reads the app version).
+1. Bump `"version"` in `package.json` (and `package-lock.json`). The About page reads `app.getVersion()`, so it matches that bump.
 2. Push the commit to `master` or `main`. CI creates a GitHub Release when the version changes — releases are published from **push**, not from pull requests.
 3. CI builds macOS, Linux, and Windows assets and uploads them to the [Releases page](https://github.com/jamesso/tessel/releases).
 
@@ -143,17 +147,15 @@ npm run package-linux
 ```
 tessel/
 ├── .github/
-│   └── workflows/         # CI: build and GitHub Release on version bump
-├── app/                    # Frontend application
-│   ├── index.html         # Main UI
-│   ├── about.html         # About page
-│   ├── css/               # Stylesheets
-│   └── js/                # Frontend JavaScript
+│   └── workflows/         # CI: test always; pack + GitHub Release on version bump push
+├── app/                   # Renderer (HTML, CSS, JS)
+├── lib/                   # Mosaic, duration, media-accept helpers (main + tests)
+├── test/                  # node:test suite
 ├── assets/                # Icons, logos, and screenshots
 ├── scripts/
 │   └── githooks/          # commit-msg hook (strips AI co-author trailers)
 ├── main.js                # Electron main process
-├── preload.js             # Preload script for security
+├── preload.js             # IPC bridge (no relative CommonJS requires)
 └── package.json           # Dependencies and scripts
 ```
 
