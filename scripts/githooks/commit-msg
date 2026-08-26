@@ -1,0 +1,47 @@
+#!/bin/sh
+# Strip AI co-author / "Generated with" trailers from every commit (tool-agnostic).
+# Installed copy: .git/hooks/commit-msg (shared by worktrees of this repo).
+# Fresh clones do not get .git/hooks; copy this file there, or set core.hooksPath
+# to scripts/githooks.
+set -e
+msgfile="$1"
+if [ ! -f "$msgfile" ]; then
+  exit 0
+fi
+python3 - "$msgfile" <<'PY'
+import re
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as f:
+    original = f.read()
+
+ai_trailer = re.compile(
+    r"^\s*(Claude-Session|Made-with)\s*:.*$|^\s*(🤖\s*)?Generated with\b.*$",
+    re.IGNORECASE,
+)
+ai_coauthor = re.compile(
+    r"^\s*(Co-authored-by|Co-Authored-By)\s*:.*("
+    r"Cursor|Claude|Codex|Copilot|ChatGPT|Gemini|OpenAI|Anthropic|"
+    r"cursoragent@cursor\.com|noreply@anthropic\.com|copilot@|openai\.com"
+    r").*$",
+    re.IGNORECASE,
+)
+
+kept = []
+for line in original.splitlines():
+    if ai_trailer.match(line) or ai_coauthor.match(line):
+        continue
+    kept.append(line)
+
+while kept and not kept[-1].strip():
+    kept.pop()
+
+text = "\n".join(kept)
+if text:
+    text += "\n"
+
+if text != original:
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
+PY
