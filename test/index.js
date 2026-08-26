@@ -1,4 +1,5 @@
 require('./mosaic.test.js');
+require('./output-settings.test.js');
 require('./timecode.test.js');
 require('./duration-probe.test.js');
 require('./media-accept.test.js');

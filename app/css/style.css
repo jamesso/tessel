@@ -3,13 +3,14 @@ body, button {
 }
 body {
     display: grid;
-    grid-template-rows: 90px 1fr 100px;
+    grid-template-rows: 90px 1fr auto;
     grid-gap: 0;
     min-height: 100vh;
     background-color: #2d3648;
     color: #fff;
     padding: 0;
     margin: 0;
+    color-scheme: dark;
 }
 header {
     padding: 30px 30px 20px;
@@ -48,7 +49,7 @@ main {
 }
 .grid-toggle {
     text-align: center;
-    margin: 15px 0;
+    margin: 8px 0 12px;
 }
 .grid-btn {
     background-color: #1a202c;
@@ -82,7 +83,7 @@ main {
     text-transform: uppercase;
     letter-spacing: 2px;
     width: 100%;
-    margin: 15px 0;
+    margin: 8px 0;
 }
 .dropzone {
     background-color: #1a202c;
@@ -229,7 +230,56 @@ body .copy {
     font-size: 14px;
 }
 footer {
-    padding: 20px 30px 30px;
+    padding: 12px 30px 22px;
+}
+.output-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin: 0 0 12px;
+    min-width: 0;
+}
+.output-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.output-field span {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #e8edf4;
+    line-height: 1.2;
+}
+.output-field select {
+    width: 100%;
+    min-width: 0;
+    height: 28px;
+    box-sizing: border-box;
+    padding: 0 22px 0 8px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #fff;
+    background-color: #1a202c;
+    border: 2px solid #1a202c;
+    border-radius: 4px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='white' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 8px 5px;
+}
+.output-field select:hover {
+    border-color: #fff;
+}
+.output-field select:focus {
+    outline: 0;
+    border-color: #fff;
 }
 .button {
     font-size: 20px;

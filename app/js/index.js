@@ -49,6 +49,16 @@ var vidPath9 = undefined
 var currentGrid = '2x2' // Default grid type
 let converting = false
 
+function getOutputSettings() {
+    const resolution = document.getElementById('output-resolution').value.split('x')
+    return {
+        width: Number(resolution[0]),
+        height: Number(resolution[1]),
+        audio: document.getElementById('output-audio').value,
+        fit: document.getElementById('output-fit').value,
+    }
+}
+
 function fileBasename(filePath) {
     if (!filePath) {
         return ''
@@ -260,6 +270,7 @@ document.getElementById('convert').addEventListener('click', async (e) => {
             vidPath9,
             gridType: currentGrid,
             filePath,
+            ...getOutputSettings(),
         })
         overlay.style.display = 'block'
     } catch (err) {

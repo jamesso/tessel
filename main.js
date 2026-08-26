@@ -304,7 +304,7 @@ function getVideoDurationWithFFmpeg(videoPath) {
     })
 }
 
-function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPath6, vidPath7, vidPath8, vidPath9, gridType, filePath }) {
+function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPath6, vidPath7, vidPath8, vidPath9, gridType, filePath, width, height, audio, fit }) {
     if (shouldRejectSecondJob(activeEncode)) {
         sendToRenderer('video:error', 'A conversion is already running')
         return
@@ -315,9 +315,15 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
 
     try {
             debugLog('=== CONVERSION START ===')
+            const output = { width, height }
+
             debugLog('Input parameters:', { 
                 gridType, 
                 filePath,
+                width,
+                height,
+                audio,
+                fit,
                 videos: { vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPath6, vidPath7, vidPath8, vidPath9 }
             })
 
@@ -377,10 +383,10 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                 debugLog('=== STARTING FFMPEG CONVERSION ===')
                 debugLog('Longest duration determined:', longestDuration)
 
-                const { gridSize, blockWidth, blockHeight } = gridMetrics(gridType);
+                const { gridSize, blockWidth, blockHeight } = gridMetrics(gridType, output);
                 const isGrid3x3 = gridType === '3x3';
 
-                debugLog('Grid configuration:', { gridType, isGrid3x3, gridSize, blockWidth, blockHeight })
+                debugLog('Grid configuration:', { gridType, isGrid3x3, gridSize, blockWidth, blockHeight, output, audio, fit })
 
                 const slotPaths = selectSlotPaths(originalPaths, gridType);
                 slotPaths.forEach(function (val, index) {
@@ -391,19 +397,19 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                     }
                 });
 
-                const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
+                const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration, output);
 
                 debugLog('Video info array:', videoInfo)
                 debugLog('Video info with coordinates:', videoInfo)
 
-                const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
+                const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight, { fit, output });
 
                 debugLog('Filter complex string:', filterComplex)
 
                 const totalFrames = Math.ceil(longestDuration * 25); // 25fps
                 debugLog('Expected frame count:', totalFrames)
 
-                const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, filePath);
+                const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, filePath, { audio, output });
 
                 debugLog('FFmpeg command args:', args)
                 debugLog('Full FFmpeg command:', ffmpegPath.path + ' ' + args.join(' '))
