@@ -30,6 +30,11 @@ test('preload send whitelist includes video:cancel', () => {
     assert.match(src, /validChannels = \['video:convert', 'video:cancel'\]/);
 });
 
+test('sandboxed preload does not require relative CommonJS modules', () => {
+    const src = read('preload.js');
+    assert.doesNotMatch(src, /require\s*\(\s*['"]\./);
+});
+
 test('preload receive whitelist includes video:cancelled', () => {
     const src = read('preload.js');
     assert.match(src, /'video:cancelled'/);

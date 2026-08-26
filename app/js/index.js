@@ -146,7 +146,7 @@ for (let i = 0; i < dz.length; i++){
         // Single-file drop fills the targeted slot even if occupied (replace).
         if (files.length === 1) {
             const file = files[0];
-            if (!window.electronAPI.isProbablyVideoFile({ type: file.type, name: file.name })) {
+            if (!window.isProbablyVideoFile({ type: file.type, name: file.name })) {
                 alert('Please drop a video file (MP4, MOV, etc.)');
                 return false;
             }
@@ -160,7 +160,7 @@ for (let i = 0; i < dz.length; i++){
         }
 
         const videos = files.filter(function (file) {
-            return window.electronAPI.isProbablyVideoFile({ type: file.type, name: file.name });
+            return window.isProbablyVideoFile({ type: file.type, name: file.name });
         });
         if (videos.length === 0) {
             alert('Please drop a video file (MP4, MOV, etc.)');
@@ -205,7 +205,7 @@ for (let i = 0; i < dz.length; i++){
         const options = {
             defaultPath: defaultPath,
             filters :[
-            {name: 'Movies', extensions: window.electronAPI.VIDEO_EXTENSIONS}
+            {name: 'Movies', extensions: window.VIDEO_EXTENSIONS}
             ]
         }
         
