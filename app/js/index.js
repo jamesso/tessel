@@ -61,6 +61,7 @@ var vidPath7 = undefined
 var vidPath8 = undefined
 var vidPath9 = undefined
 var currentGrid = '2x2' // Default grid type
+let converting = false
 
 // File drop handling is now done directly in the ondrop event handlers
 
@@ -179,6 +180,15 @@ for (let i = 0; i < dz.length; i++){
 document.getElementById('convert').addEventListener('click', async (e) => {
     e.preventDefault()
 
+    const overlay = document.getElementById('overlay')
+    if (overlay.style.display === 'block') {
+        return
+    }
+
+    const convertBtn = document.getElementById('convert')
+    converting = true
+    convertBtn.disabled = true
+
     const defaultPath = await electronAPI.getDefaultPath('saveFile')
     const options = {
         defaultPath: defaultPath,
@@ -191,30 +201,36 @@ document.getElementById('convert').addEventListener('click', async (e) => {
         if (!vidPath1 && !vidPath2 && !vidPath3 && !vidPath4 && !vidPath5 && !vidPath6 && !vidPath7 && !vidPath8 && !vidPath9) {
             console.log("No videos selected")
             alert("Please select at least one video file")
+            converting = false
+            convertBtn.disabled = false
             return;
         }
         
         const { filePath } = await electronAPI.showSaveDialog(options)
-        if (!filePath) { 
+        if (!filePath) {
+            converting = false
+            convertBtn.disabled = false
             return;
-        } else {
-            electronAPI.send('video:convert', {
-                vidPath1,
-                vidPath2,
-                vidPath3,
-                vidPath4,
-                vidPath5,
-                vidPath6,
-                vidPath7,
-                vidPath8,
-                vidPath9,
-                gridType: currentGrid,
-                filePath,
-            })
-            document.getElementById("overlay").style.display = "block";
         }
+
+        electronAPI.send('video:convert', {
+            vidPath1,
+            vidPath2,
+            vidPath3,
+            vidPath4,
+            vidPath5,
+            vidPath6,
+            vidPath7,
+            vidPath8,
+            vidPath9,
+            gridType: currentGrid,
+            filePath,
+        })
+        overlay.style.display = 'block'
     } catch (err) {
         console.log('Save failed:', err)
+        converting = false
+        convertBtn.disabled = false
     }
 })
 
@@ -233,6 +249,8 @@ electronAPI.receive('video:progress', (data) => {
 
 // On error
 electronAPI.receive('video:error', (error) => {
+    converting = false
+    document.getElementById('convert').disabled = false
     document.getElementById("overlay").style.display = "none";
     alert('Video conversion error: ' + error);
     // Reset progress text
@@ -244,6 +262,8 @@ electronAPI.receive('video:error', (error) => {
 
 // On done
 electronAPI.receive('video:done', () => {
+    converting = false
+    document.getElementById('convert').disabled = false
     //add toast for coversion complete
     document.getElementById("overlay").style.display = "none";
     // Reset progress text
