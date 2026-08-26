@@ -12,6 +12,7 @@
 - **Depends on**: plans/002-fix-duration-probing.md
 - **Category**: bug
 - **Planned at**: commit `b558cb8`, 2026-08-26
+- **Completed**: 2026-08-26 — no hang on darwin-arm64; encode argv hardened with `-nostdin`
 
 ## Why this matters
 
@@ -89,8 +90,18 @@ Set status DONE. If you could not run ffmpeg (missing binary), mark BLOCKED with
 
 ## Investigation result
 
-_(executor fills in)_
+- **OS / arch**: macOS (darwin 25.5.0), arm64 (Apple Silicon)
+- **Bundled binary**: `@ffmpeg-installer/ffmpeg` 4.4 (`node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg`)
+- **Hang without `-nostdin`**: **no** — all cases completed in 10–14 ms (6 s timeout); default stdin pipe did not stall probe or encode
+- **Timings** (6 s kill threshold):
 
-- OS / arch:
-- Hang without `-nostdin` (yes/no/timeout):
-- Change landed (yes/no):
+| Case | ms | exit | hung |
+|------|-----|------|------|
+| probe, default pipe, no `-nostdin` | 13 | 1 | no |
+| probe, stdin ignore, no `-nostdin` | 11 | 1 | no |
+| probe, default pipe, with `-nostdin` | 10 | 1 | no |
+| encode (libx264 veryfast/crf 23/yuv420p), default pipe, no `-nostdin` | 13 | 0 | no |
+| encode, stdin ignore, no `-nostdin` | 14 | 0 | no |
+| encode, default pipe, with `-nostdin` | 13 | 0 | no |
+
+- **Change landed**: **yes** — `-nostdin` prepended to encode argv in `buildFfmpegArgs` (`lib/mosaic.js`); probe spawn in `main.js` already had `-nostdin` (plan 002). Hardening only; no hang reproduced on this OS/binary.

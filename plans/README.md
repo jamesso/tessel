@@ -29,7 +29,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 019 | Convert session: cancel, keep grid, toast | P2 | M | 004 | TODO |
 | 020 | Grid layout editor: names, multi-drop | P2 | M | 006 | TODO |
 | 021 | Spike output settings (resolution, audio, fit) | P3 | M | 007, 014 | TODO |
-| 022 | Investigate ffmpeg stdin hang (`-nostdin`) | P3 | S | 002 | TODO |
+| 022 | Investigate ffmpeg stdin hang (`-nostdin`) | P3 | S | 002 | DONE |
 | 023 | Investigate `N/A` / NaN durations | P3 | S | 002 | DONE |
 | 024 | Investigate `-pix_fmt yuv420p` | P3 | S | 001 | DONE |
 | 025 | Investigate progress `time=` parser | P3 | S | 001, 014 | TODO |
