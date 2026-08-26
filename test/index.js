@@ -5,3 +5,4 @@ require('./media-accept.test.js');
 require('./ipc-send.test.js');
 require('./navigation-guard.test.js');
 require('./job-lock.test.js');
+require('./slot-fill.test.js');
