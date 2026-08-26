@@ -37,6 +37,7 @@ test('sparse 2x2 filter and args contract', () => {
     assert.match(filterComplex, /force_original_aspect_ratio=decrease/);
     assert.match(filterComplex, /pad=/);
     assert.match(filterComplex, /\[final\]/);
+    assert.equal(args[0], '-nostdin');
     assert.ok(args.includes('-map'));
     assert.ok(args.includes('[final]'));
     assert.ok(args.includes('-an'));
@@ -102,6 +103,7 @@ test('args include -t equal to String(longestDuration)', () => {
     const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
     const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, '/out.mp4');
 
+    assert.equal(args[0], '-nostdin');
     const tIndex = args.indexOf('-t');
     assert.equal(args[tIndex + 1], String(longestDuration));
 });
