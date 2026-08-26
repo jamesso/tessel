@@ -17,7 +17,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 007 | Letterbox mosaic cells instead of stretching | P2 | S | 001 | DONE |
 | 008 | Remove fluent-ffmpeg encode path and `slash` | P2 | S | 002 | DONE |
 | 009 | Fix README: `npm start` is not a production build | P2 | S | — | DONE |
-| 010 | Stop writing debug logs to the Desktop | P2 | S | — | TODO |
+| 010 | Stop writing debug logs to the Desktop | P2 | S | — | DONE |
 | 011 | Open the About GitHub link in the system browser | P2 | S | — | DONE |
 | 012 | Set Windows packager metadata to Tessel | P2 | S | — | DONE |
 | 013 | Show About version from `app.getVersion()` | P2 | S | — | DONE |
