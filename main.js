@@ -37,14 +37,6 @@ function debugLog(message, data = null) {
     }
 }
 
-// Global error handling
-process.on('uncaughtException', (error) => {
-    debugLog('Uncaught Exception:', error.stack)
-})
-
-process.on('unhandledRejection', (reason, promise) => {
-    debugLog('Unhandled Rejection:', { reason: reason.toString(), promise: promise.toString() })
-})
 
 // Set environment - force production for packaged apps
 if (app.isPackaged) {
@@ -73,6 +65,7 @@ const {
     buildFilterComplex,
     buildFfmpegArgs,
 } = require('./lib/mosaic')
+const { canSend } = require('./lib/ipc-send')
 
 // Set ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegPath.path);
@@ -93,10 +86,26 @@ let aboutWindow
 const liveProbeProcesses = new Set()
 
 function sendToRenderer(channel, ...args) {
-    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
+    if (canSend(mainWindow)) {
         mainWindow.webContents.send(channel, ...args)
     }
 }
+
+process.on('uncaughtException', (error) => {
+    debugLog('Uncaught Exception:', error.stack)
+    if (!isDev) {
+        console.error(error)
+        sendToRenderer('video:error', 'Unexpected error')
+    }
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+    debugLog('Unhandled Rejection:', { reason: reason.toString(), promise: promise.toString() })
+    if (!isDev) {
+        console.error(reason)
+        sendToRenderer('video:error', 'Unexpected error')
+    }
+})
 
 // Set up IPC handlers before creating windows
 function setupIPC() {
@@ -153,6 +162,8 @@ function createMainWindow() {
     }
 
     mainWindow.loadFile(path.join(__dirname, 'app/index.html'))
+
+    mainWindow.on('closed', () => { mainWindow = null })
 }
 
 function createAboutWindow() {
@@ -177,8 +188,6 @@ app.on('ready', () => {
 
     const mainMenu = Menu.buildFromTemplate(menu)
     Menu.setApplicationMenu(mainMenu)
-
-    mainWindow.on('closed', () => mainWindow = null)
 })
 
 const menu = [
@@ -282,6 +291,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
             
             if (allVideoPaths.length === 0) {
                 debugLog('ERROR: No videos provided')
+                sendToRenderer('video:error', 'No videos provided')
                 return;
             }
 
@@ -351,6 +361,13 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                 const ffmpegProcess = spawn(ffmpegPath.path, args);
                 
                 let ffmpegOutput = '';
+                let signaled = false;
+
+                const signalError = (message) => {
+                    if (signaled) return
+                    signaled = true
+                    sendToRenderer('video:error', message)
+                }
                 
                 ffmpegProcess.stderr.on('data', (data) => {
                     const output = data.toString();
@@ -362,11 +379,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                         const percent = progressPercent(currentTime, longestDuration);
                         
                         debugLog('Progress update:', { currentTime, percent, longestDuration })
-                        if (mainWindow && mainWindow.webContents) {
-                            mainWindow.webContents.send('video:progress', {
-                                percent: percent
-                            });
-                        }
+                        sendToRenderer('video:progress', { percent: percent })
                     }
                 });
 
@@ -411,16 +424,16 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                             debugLog('=== CONVERSION END ===')
                         });
                         
-                        mainWindow.webContents.send('video:done');
+                        sendToRenderer('video:done');
                     } else {
                         debugLog('FFmpeg failed:', { code, lastOutput: ffmpegOutput.slice(-1000) })
-                        mainWindow.webContents.send('video:error', 'Conversion failed');
+                        signalError('Conversion failed');
                     }
                 });
 
                 ffmpegProcess.on('error', (err) => {
                     debugLog('FFmpeg spawn error:', err)
-                    mainWindow.webContents.send('video:error', err.message);
+                    signalError(err.message);
                 });
             };
 
@@ -429,6 +442,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
 
     } catch (err) {
         debugLog('Conversion function error:', err)
+        sendToRenderer('video:error', err.message || 'Conversion failed')
     }
 }
 
