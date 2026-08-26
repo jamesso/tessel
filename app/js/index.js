@@ -262,11 +262,42 @@ document.getElementById('convert').addEventListener('click', async (e) => {
             filePath,
         })
         overlay.style.display = 'block'
+        const toast = document.getElementById('toast')
+        if (toast) {
+            toast.style.display = 'none'
+        }
     } catch (err) {
         console.error('Save failed:', err)
         converting = false
         convertBtn.disabled = false
     }
+})
+
+function resetConvertUi() {
+    converting = false
+    document.getElementById('convert').disabled = false
+    document.getElementById('overlay').style.display = 'none'
+    const progressText = document.getElementById('progress-text')
+    if (progressText) {
+        progressText.textContent = '0%'
+    }
+}
+
+function showToast() {
+    const toast = document.getElementById('toast')
+    if (!toast) {
+        return
+    }
+    toast.style.display = 'block'
+    clearTimeout(showToast.hideTimer)
+    showToast.hideTimer = setTimeout(() => {
+        toast.style.display = 'none'
+    }, 3000)
+}
+
+document.getElementById('cancel-convert').addEventListener('click', (e) => {
+    e.preventDefault()
+    electronAPI.send('video:cancel')
 })
 
 // On progress
@@ -285,31 +316,18 @@ electronAPI.receive('video:progress', (data) => {
 
 // On error
 electronAPI.receive('video:error', (error) => {
-    converting = false
-    document.getElementById('convert').disabled = false
-    document.getElementById("overlay").style.display = "none";
+    resetConvertUi()
     alert('Video conversion error: ' + error);
-    // Reset progress text
-    const progressText = document.getElementById('progress-text')
-    if (progressText) {
-        progressText.textContent = '0%'
-    }
+})
+
+electronAPI.receive('video:cancelled', () => {
+    resetConvertUi()
 })
 
 // On done
 electronAPI.receive('video:done', () => {
-    converting = false
-    document.getElementById('convert').disabled = false
-    //add toast for coversion complete
-    document.getElementById("overlay").style.display = "none";
-    // Reset progress text
-    const progressText = document.getElementById('progress-text')
-    if (progressText) {
-        progressText.textContent = '0%'
-    }
-    
-    // Clear all video positions after successful conversion
-    clearAllVideos()
+    resetConvertUi()
+    showToast()
 })
 
 // Function to clear all video positions

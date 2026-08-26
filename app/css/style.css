@@ -354,3 +354,43 @@ footer {
         opacity: 0.5;
     }
 }
+#cancel-convert {
+    display: block;
+    margin: 28px auto 0;
+    padding: 8px 16px;
+    background: transparent;
+    border: 0;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0.85;
+}
+#cancel-convert:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+#cancel-convert:focus {
+    outline: 1px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 4px;
+}
+#toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    display: none;
+    z-index: 110;
+    background-color: #1a202c;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 4px;
+    box-shadow: 0 10px 15px -3px #1a202d, 0 4px 6px -2px #303a54;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    pointer-events: none;
+}

@@ -44,6 +44,7 @@ const {
 const { canSend } = require('./lib/ipc-send')
 const { attachNavigationGuard } = require('./lib/navigation-guard')
 const { shouldRejectSecondJob } = require('./lib/job-lock')
+const { shouldUnlinkPartialOutput } = require('./lib/convert-session')
 
 const appHtmlRoot = path.join(__dirname, 'app')
 
@@ -63,6 +64,7 @@ let aboutWindow
 const liveProbeProcesses = new Set()
 let activeEncode = null
 let activeOutputPath = null
+let outputCreatedByThisJob = false
 let killedByUs = false
 
 function sendToRenderer(channel, ...args) {
@@ -84,8 +86,32 @@ function killChildProcess(child) {
     }
 }
 
-function killActiveFfmpeg() {
-    if (!activeEncode && liveProbeProcesses.size === 0) return
+function discardPartialOutput() {
+    if (shouldUnlinkPartialOutput({
+        encodeStarted: Boolean(activeOutputPath),
+        createdByThisJob: outputCreatedByThisJob,
+    }) && activeOutputPath) {
+        try {
+            fs.unlinkSync(activeOutputPath)
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                debugLog('Failed to unlink partial output:', { path: activeOutputPath, message: err.message })
+            }
+        }
+    }
+    activeOutputPath = null
+    outputCreatedByThisJob = false
+}
+
+function killActiveFfmpeg(options = {}) {
+    const notifyCancelled = options.notify === 'cancelled'
+
+    if (!activeEncode && liveProbeProcesses.size === 0) {
+        if (notifyCancelled) {
+            sendToRenderer('video:cancelled')
+        }
+        return
+    }
 
     killedByUs = true
 
@@ -96,21 +122,12 @@ function killActiveFfmpeg() {
     }
     liveProbeProcesses.clear()
 
-    if (activeOutputPath) {
-        try {
-            fs.unlinkSync(activeOutputPath)
-        } catch (err) {
-            if (err.code !== 'ENOENT') {
-                debugLog('Failed to unlink partial output:', { path: activeOutputPath, message: err.message })
-            }
-        }
-        activeOutputPath = null
-    }
+    discardPartialOutput()
 
     activeEncode = null
 
-    if (canSend(mainWindow)) {
-        sendToRenderer('video:error', 'Cancelled')
+    if (notifyCancelled) {
+        sendToRenderer('video:cancelled')
     }
 }
 
@@ -158,6 +175,10 @@ function setupIPC() {
     ipcMain.on('video:convert', (e, options) => {
         debugLog('video:convert', { gridType: options.gridType })
         convertVideo(options)
+    })
+
+    ipcMain.on('video:cancel', () => {
+        killActiveFfmpeg({ notify: 'cancelled' })
     })
 }
 
@@ -408,6 +429,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                 debugLog('FFmpeg command args:', args)
                 debugLog('Full FFmpeg command:', ffmpegPath.path + ' ' + args.join(' '))
 
+                outputCreatedByThisJob = !fs.existsSync(filePath)
                 const ffmpegProcess = spawn(ffmpegPath.path, args);
 
                 activeEncode = ffmpegProcess
@@ -419,10 +441,15 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                 const finishEncode = () => {
                     activeEncode = null
                     activeOutputPath = null
+                    outputCreatedByThisJob = false
                 }
 
                 const signalError = (message) => {
                     if (signaled) return
+                    if (killedByUs) {
+                        finishEncode()
+                        return
+                    }
                     signaled = true
                     finishEncode()
                     sendToRenderer('video:error', message)
@@ -480,6 +507,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
         debugLog('Conversion function error:', err)
         activeEncode = null
         activeOutputPath = null
+        outputCreatedByThisJob = false
         sendToRenderer('video:error', err.message || 'Conversion failed')
     }
 }

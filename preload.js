@@ -7,13 +7,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // IPC methods
   send: (channel, data) => {
     // whitelist channels
-    let validChannels = ['video:convert']
+    let validChannels = ['video:convert', 'video:cancel']
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data)
     }
   },
   receive: (channel, func) => {
-    let validChannels = ['video:progress', 'video:done', 'video:error']
+    let validChannels = ['video:progress', 'video:done', 'video:error', 'video:cancelled']
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender` 
       ipcRenderer.on(channel, (event, ...args) => func(...args))
