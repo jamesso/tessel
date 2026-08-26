@@ -82,7 +82,7 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 
 ## Technical Details
 
-- **Built with**: Electron 37.1.0
+- **Built with**: Electron 39.8.10
 - **Video Processing**: FFmpeg with fluent-ffmpeg
 - **Architecture**: Modern Electron with context isolation and security best practices
 - **Output Format**: MP4 with H.264 encoding at 25fps
@@ -92,7 +92,7 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 
 ### Prerequisites
 
-- Node.js 18 or later
+- Node.js 22.12 or later
 - npm
 
 ### Setup
