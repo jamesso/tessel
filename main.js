@@ -5,36 +5,14 @@ const { app, BrowserWindow, Menu, ipcMain, shell, dialog } = require('electron')
 
 const isMac = process.platform === 'darwin' ? true : false
 
-// Setup debug logging for development mode only
-let debugLogPath = null
 const isDev = process.env.NODE_ENV !== 'production' && !app.isPackaged
 
-if (isDev) {
-    debugLogPath = path.join(os.homedir(), 'Desktop', 'tessel-debug.log')
-    // Clear previous log
-    try {
-        fs.writeFileSync(debugLogPath, '')
-    } catch (err) {
-        console.error('Failed to create debug log file:', err)
-    }
-}
-
 function debugLog(message, data = null) {
-    // Only log in development mode
     if (!isDev) return
-    
+
     const timestamp = new Date().toISOString()
     const logMessage = `[${timestamp}] ${message}${data ? '\n' + JSON.stringify(data, null, 2) : ''}\n`
-    
     console.log(logMessage)
-    
-    if (debugLogPath) {
-        try {
-            fs.appendFileSync(debugLogPath, logMessage)
-        } catch (err) {
-            console.error('Failed to write to debug log:', err)
-        }
-    }
 }
 
 
@@ -183,7 +161,7 @@ function setupIPC() {
     ipcMain.handle('app:getVersion', () => app.getVersion())
 
     ipcMain.on('video:convert', (e, options) => {
-        console.log(options)
+        debugLog('video:convert', { gridType: options.gridType })
         convertVideo(options)
     })
 }

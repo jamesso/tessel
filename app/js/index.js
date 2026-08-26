@@ -1,13 +1,3 @@
-// Test if electronAPI is available
-console.log('Script loading...')
-console.log('electronAPI available:', typeof window.electronAPI)
-
-if (window.electronAPI) {
-    console.log('electronAPI methods available:', Object.keys(window.electronAPI))
-} else {
-    console.error('electronAPI is NOT available!')
-}
-
 // Grid toggle functionality
 document.getElementById('grid-2x2').addEventListener('click', function() {
     switchGrid('2x2')
@@ -67,10 +57,8 @@ let converting = false
 
 //On select
 let dz = document.querySelectorAll('.dropzone');
-console.log(dz);
 for (let i = 0; i < dz.length; i++){
     let options = dz[i].getAttribute("id").split('-');
-    console.log(options);
     let vidNum = options[1];
     let maxFiles = parseInt(options[2]);
 
@@ -97,11 +85,9 @@ for (let i = 0; i < dz.length; i++){
         dz[i].classList.remove("copy");
         
         const files = e.dataTransfer.files;
-        console.log('Files dropped:', files.length);
         
         if (files.length > 0) {
             const file = files[0]; // Only use the first file
-            console.log('Processing file:', file.name, 'Type:', file.type, 'Path:', file.path);
             
             // Check if it's a video file (MIME type or extension fallback)
             if (!window.electronAPI.isProbablyVideoFile({ type: file.type, name: file.name })) {
@@ -112,10 +98,8 @@ for (let i = 0; i < dz.length; i++){
             
             // Get file path using webUtils API
             const filePath = window.electronAPI.getPathForFile(file);
-            console.log('webUtils.getPathForFile result:', filePath);
             
             if (filePath) {
-                console.log('Successfully got file path:', filePath);
                 window['vidPath' + vidNum] = filePath;
                 dz[i].classList.remove("empty");
                 dz[i].classList.add("file");
@@ -171,7 +155,7 @@ for (let i = 0; i < dz.length; i++){
                 if (closeBtn) closeBtn.classList.remove('hidden');
             } 
         } catch (err) {
-            console.log('Open failed:', err)
+            console.error('Open failed:', err)
         }
     };
 };
@@ -199,7 +183,6 @@ document.getElementById('convert').addEventListener('click', async (e) => {
     try {
         // Check if at least one video is selected
         if (!vidPath1 && !vidPath2 && !vidPath3 && !vidPath4 && !vidPath5 && !vidPath6 && !vidPath7 && !vidPath8 && !vidPath9) {
-            console.log("No videos selected")
             alert("Please select at least one video file")
             converting = false
             convertBtn.disabled = false
@@ -228,7 +211,7 @@ document.getElementById('convert').addEventListener('click', async (e) => {
         })
         overlay.style.display = 'block'
     } catch (err) {
-        console.log('Save failed:', err)
+        console.error('Save failed:', err)
         converting = false
         convertBtn.disabled = false
     }
@@ -290,7 +273,6 @@ function clearAllVideos() {
     vidPath9 = undefined
     
     let clear = document.querySelectorAll('.file')
-    console.log('Clearing', clear.length, 'video positions');
     for (let i = 0; i < clear.length; i++){
         clear[i].classList.add("empty")
         clear[i].classList.remove("file")
@@ -303,13 +285,10 @@ function clearAllVideos() {
         if (fileIcon) fileIcon.classList.add('hidden');
         if (closeBtn) closeBtn.classList.add('hidden');
     }
-    console.log("Videos cleared")
 }
 
 // Function to clear individual video position
 function clearVideo(videoNum) {
-    console.log('Clearing video position:', videoNum)
-    
     // Clear the video path variable
     window['vidPath' + videoNum] = undefined
     
