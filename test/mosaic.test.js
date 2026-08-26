@@ -44,6 +44,11 @@ test('sparse 2x2 filter and args contract', () => {
     assert.ok(args.includes('25'));
     assert.ok(args.includes('-vcodec'));
     assert.ok(args.includes('libx264'));
+    const vcodecIndex = args.indexOf('libx264');
+    assert.equal(args[vcodecIndex + 1], '-preset');
+    assert.equal(args[vcodecIndex + 2], 'veryfast');
+    assert.equal(args[vcodecIndex + 3], '-crf');
+    assert.equal(args[vcodecIndex + 4], '23');
 });
 
 test('full 2x2 occupied cells letterbox each video', () => {

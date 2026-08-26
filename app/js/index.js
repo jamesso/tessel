@@ -222,9 +222,10 @@ document.getElementById('convert').addEventListener('click', async (e) => {
 electronAPI.receive('video:progress', (data) => {
     const progressText = document.getElementById('progress-text')
     if (progressText) {
-        const percent = data.percent
-        if (typeof percent === 'number') {
-            progressText.textContent = `${percent}%`
+        if (data.phase) {
+            progressText.textContent = data.phase
+        } else if (typeof data.percent === 'number') {
+            progressText.textContent = `${data.percent}%`
         } else {
             progressText.textContent = '0%'
         }
