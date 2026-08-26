@@ -67,6 +67,7 @@ const {
 } = require('./lib/mosaic')
 const { canSend } = require('./lib/ipc-send')
 const { attachNavigationGuard } = require('./lib/navigation-guard')
+const { shouldRejectSecondJob } = require('./lib/job-lock')
 
 const appHtmlRoot = path.join(__dirname, 'app')
 
@@ -87,10 +88,56 @@ debugLog('Environment check:', {
 let mainWindow
 let aboutWindow
 const liveProbeProcesses = new Set()
+let activeEncode = null
+let activeOutputPath = null
+let killedByUs = false
 
 function sendToRenderer(channel, ...args) {
     if (canSend(mainWindow)) {
         mainWindow.webContents.send(channel, ...args)
+    }
+}
+
+function killChildProcess(child) {
+    if (!child || !child.kill) return
+    try {
+        if (process.platform === 'win32') {
+            child.kill()
+        } else {
+            child.kill('SIGTERM')
+        }
+    } catch (err) {
+        debugLog('Failed to kill child process:', err.message)
+    }
+}
+
+function killActiveFfmpeg() {
+    if (!activeEncode && liveProbeProcesses.size === 0) return
+
+    killedByUs = true
+
+    killChildProcess(activeEncode)
+
+    for (const probe of liveProbeProcesses) {
+        killChildProcess(probe)
+    }
+    liveProbeProcesses.clear()
+
+    if (activeOutputPath) {
+        try {
+            fs.unlinkSync(activeOutputPath)
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                debugLog('Failed to unlink partial output:', { path: activeOutputPath, message: err.message })
+            }
+        }
+        activeOutputPath = null
+    }
+
+    activeEncode = null
+
+    if (canSend(mainWindow)) {
+        sendToRenderer('video:error', 'Cancelled')
     }
 }
 
@@ -165,7 +212,10 @@ function createMainWindow() {
 
     mainWindow.loadFile(path.join(__dirname, 'app/index.html'))
 
-    mainWindow.on('closed', () => { mainWindow = null })
+    mainWindow.on('closed', () => {
+        killActiveFfmpeg()
+        mainWindow = null
+    })
 }
 
 function createAboutWindow() {
@@ -282,6 +332,14 @@ function getVideoDurationWithFFmpeg(videoPath) {
 }
 
 function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPath6, vidPath7, vidPath8, vidPath9, gridType, filePath }) {
+    if (shouldRejectSecondJob(activeEncode)) {
+        sendToRenderer('video:error', 'A conversion is already running')
+        return
+    }
+
+    activeEncode = true
+    killedByUs = false
+
     try {
             debugLog('=== CONVERSION START ===')
             debugLog('Input parameters:', { 
@@ -296,6 +354,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
             
             if (allVideoPaths.length === 0) {
                 debugLog('ERROR: No videos provided')
+                activeEncode = null
                 sendToRenderer('video:error', 'No videos provided')
                 return;
             }
@@ -328,14 +387,20 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                     videoDurations = durations
                     const maxDuration = maxDurationFromMap(durations)
                     debugLog('Duration analysis complete:', { maxDuration, videoDurations })
+                    if (killedByUs) return
                     startConversion(maxDuration)
                 } catch (err) {
                     debugLog('Duration probe failed:', err.message)
-                    sendToRenderer('video:error', 'Could not read video duration')
+                    activeEncode = null
+                    if (!killedByUs) {
+                        sendToRenderer('video:error', 'Could not read video duration')
+                    }
                 }
             };
 
             const startConversion = (longestDuration) => {
+                if (killedByUs) return
+
                 debugLog('=== STARTING FFMPEG CONVERSION ===')
                 debugLog('Longest duration determined:', longestDuration)
 
@@ -371,13 +436,22 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                 debugLog('Full FFmpeg command:', ffmpegPath.path + ' ' + args.join(' '))
 
                 const ffmpegProcess = spawn(ffmpegPath.path, args);
+
+                activeEncode = ffmpegProcess
+                activeOutputPath = filePath
                 
                 let ffmpegOutput = '';
                 let signaled = false;
 
+                const finishEncode = () => {
+                    activeEncode = null
+                    activeOutputPath = null
+                }
+
                 const signalError = (message) => {
                     if (signaled) return
                     signaled = true
+                    finishEncode()
                     sendToRenderer('video:error', message)
                 }
                 
@@ -401,6 +475,12 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
 
                 ffmpegProcess.on('close', (code) => {
                     debugLog('FFmpeg process closed:', { code, outputLength: ffmpegOutput.length })
+
+                    if (killedByUs) {
+                        killedByUs = false
+                        finishEncode()
+                        return
+                    }
                     
                     if (code === 0) {
                         debugLog('Processing finished successfully!')
@@ -436,6 +516,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                             debugLog('=== CONVERSION END ===')
                         });
                         
+                        finishEncode()
                         sendToRenderer('video:progress', { percent: 100 });
                         sendToRenderer('video:done');
                     } else {
@@ -455,9 +536,15 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
 
     } catch (err) {
         debugLog('Conversion function error:', err)
+        activeEncode = null
+        activeOutputPath = null
         sendToRenderer('video:error', err.message || 'Conversion failed')
     }
 }
+
+app.on('before-quit', () => {
+    killActiveFfmpeg()
+})
 
 app.on('window-all-closed', () => {
     if (!isMac) {

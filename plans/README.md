@@ -11,7 +11,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 001 | Add `npm test` and characterize the mosaic pipeline | P1 | M | — | DONE |
 | 002 | Probe duration without decoding files or inventing 10s | P1 | M | 001 | DONE |
 | 003 | Always signal convert failures; guard destroyed windows | P1 | S | — (after 001 if tests exist) | DONE |
-| 004 | Serialize FFmpeg jobs and kill on close | P1 | M | 002, 003 | TODO |
+| 004 | Serialize FFmpeg jobs and kill on close | P1 | M | 002, 003 | DONE |
 | 005 | Gate packaging and GitHub Releases (no PR publish) | P1 | S | 001 | DONE |
 | 006 | Accept README video formats in the click picker | P2 | S | — | DONE |
 | 007 | Letterbox mosaic cells instead of stretching | P2 | S | 001 | DONE |
