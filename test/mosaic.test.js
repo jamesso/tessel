@@ -34,6 +34,8 @@ test('sparse 2x2 filter and args contract', () => {
     const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, '/out.mp4');
 
     assert.match(filterComplex, /color=black/);
+    assert.match(filterComplex, /force_original_aspect_ratio=decrease/);
+    assert.match(filterComplex, /pad=/);
     assert.match(filterComplex, /\[final\]/);
     assert.ok(args.includes('-map'));
     assert.ok(args.includes('[final]'));
@@ -42,6 +44,27 @@ test('sparse 2x2 filter and args contract', () => {
     assert.ok(args.includes('25'));
     assert.ok(args.includes('-vcodec'));
     assert.ok(args.includes('libx264'));
+});
+
+test('full 2x2 occupied cells letterbox each video', () => {
+    const { blockWidth, blockHeight } = gridMetrics('2x2');
+    const longestDuration = 10;
+    const slotPaths = ['/a.mp4', '/b.mp4', '/c.mp4', '/d.mp4'];
+    const videoDurations = {
+        '/a.mp4': 10,
+        '/b.mp4': 10,
+        '/c.mp4': 10,
+        '/d.mp4': 10,
+    };
+    const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
+    const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
+
+    assert.match(filterComplex, /force_original_aspect_ratio=decrease/);
+    assert.match(filterComplex, new RegExp(`pad=${blockWidth}:${blockHeight}:\\(ow-iw\\)/2:\\(oh-ih\\)/2:black`));
+    const scaleMatches = filterComplex.match(/force_original_aspect_ratio=decrease/g);
+    assert.equal(scaleMatches.length, 4);
+    const padMatches = filterComplex.match(/pad=/g);
+    assert.equal(padMatches.length, 4);
 });
 
 test('unequal durations: tpad for shorter clip, copy when within 0.1s of max', () => {
