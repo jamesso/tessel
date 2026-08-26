@@ -24,7 +24,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 014 | Faster libx264 preset and progress during probe | P2 | S | 001, 002 | TODO |
 | 015 | Fill the 2px gap on 3×3 mosaics | P2 | S | 001 | DONE |
 | 016 | Package as asar; unpack only the ffmpeg binary | P3 | M | 002, 008 | TODO |
-| 017 | Upgrade Electron off EOL 39 | P2 | M | 001 | TODO |
+| 017 | Upgrade Electron off EOL 39 | P2 | M | 001 | DONE |
 | 018 | Install commit-msg hook on clone; expand agent docs | P3 | S | 009 | TODO |
 | 019 | Convert session: cancel, keep grid, toast | P2 | M | 004 | TODO |
 | 020 | Grid layout editor: names, multi-drop | P2 | M | 006 | TODO |
