@@ -32,7 +32,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 022 | Investigate ffmpeg stdin hang (`-nostdin`) | P3 | S | 002 | DONE |
 | 023 | Investigate `N/A` / NaN durations | P3 | S | 002 | DONE |
 | 024 | Investigate `-pix_fmt yuv420p` | P3 | S | 001 | DONE |
-| 025 | Investigate progress `time=` parser | P3 | S | 001, 014 | TODO |
+| 025 | Investigate progress `time=` parser | P3 | S | 001, 014 | DONE |
 | 026 | Replace `@ffmpeg-installer/ffmpeg` (FFmpeg 4.4) | P3 | L | 001, 002, 016 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
