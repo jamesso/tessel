@@ -86,8 +86,8 @@ Document the sample and add that snippet as a regression test anyway.
 
 ## Investigation result
 
-_(executor fills in)_
-
-- Sample `time=` line:
-- Matcher hit (yes/no):
-- Regex changed (yes/no):
+- Sample `time=` line: `time=00:00:00.88` (from bundled `@ffmpeg-installer/ffmpeg` encoding 1s lavfi color, libx264 veryfast crf 23 yuv420p 25fps `-an`)
+- Matcher hit (yes/no): yes → `0.88`
+- Regex changed (yes/no): no — strict `\d{2}:\d{2}:\d{2}\.\d{2}` matches live stderr; `matchProgressTimeInStderr` now delegates clock conversion to `parseFfmpegClock`
+- `parseTimeToSeconds` in `main.js`: already absent; `grep` clean
+- Tests added: bundled stderr regression + `time=N/A` → null
