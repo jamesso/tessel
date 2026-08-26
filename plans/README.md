@@ -14,7 +14,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 004 | Serialize FFmpeg jobs and kill on close | P1 | M | 002, 003 | TODO |
 | 005 | Gate packaging and GitHub Releases (no PR publish) | P1 | S | 001 | DONE |
 | 006 | Accept README video formats in the click picker | P2 | S | — | TODO |
-| 007 | Letterbox mosaic cells instead of stretching | P2 | S | 001 | TODO |
+| 007 | Letterbox mosaic cells instead of stretching | P2 | S | 001 | DONE |
 | 008 | Remove fluent-ffmpeg encode path and `slash` | P2 | S | 002 | TODO |
 | 009 | Fix README: `npm start` is not a production build | P2 | S | — | DONE |
 | 010 | Stop writing debug logs to the Desktop | P2 | S | — | TODO |
