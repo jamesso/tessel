@@ -48,8 +48,6 @@ if (app.isPackaged) {
 
 // Load dependencies
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg')
-const ffmpeg = require('fluent-ffmpeg')
-const slash = require('slash')
 const { spawn } = require('child_process')
 const {
     matchDurationInStderr,
@@ -70,9 +68,6 @@ const { attachNavigationGuard } = require('./lib/navigation-guard')
 const { shouldRejectSecondJob } = require('./lib/job-lock')
 
 const appHtmlRoot = path.join(__dirname, 'app')
-
-// Set ffmpeg path
-ffmpeg.setFfmpegPath(ffmpegPath.path);
 
 debugLog('FFmpeg setup:', { path: ffmpegPath.path, version: ffmpegPath.version })
 
@@ -484,38 +479,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                     
                     if (code === 0) {
                         debugLog('Processing finished successfully!')
-                        
-                        // Check the actual duration of the output file
-                        ffmpeg.ffprobe(filePath, (err, metadata) => {
-                            if (!err && metadata && metadata.format && metadata.format.duration) {
-                                const actualDuration = parseFloat(metadata.format.duration);
-                                const match = Math.abs(actualDuration - longestDuration) < 0.5;
-                                debugLog('=== FINAL DURATION CHECK ===', {
-                                    expectedDuration: longestDuration,
-                                    actualDuration: actualDuration,
-                                    difference: Math.abs(actualDuration - longestDuration),
-                                    match: match,
-                                    outputFilePath: filePath
-                                })
-                                
-                                // Also check file size
-                                try {
-                                    const stats = fs.statSync(filePath);
-                                    debugLog('Output file stats:', { 
-                                        size: stats.size,
-                                        sizeKB: Math.round(stats.size / 1024),
-                                        sizeMB: Math.round(stats.size / (1024 * 1024))
-                                    })
-                                } catch (statErr) {
-                                    debugLog('Could not get file stats:', statErr.message)
-                                }
-                            } else {
-                                debugLog('Could not check output duration:', err?.message)
-                            }
-                            
-                            debugLog('=== CONVERSION END ===')
-                        });
-                        
+                        debugLog('=== CONVERSION END ===')
                         finishEncode()
                         sendToRenderer('video:progress', { percent: 100 });
                         sendToRenderer('video:done');
