@@ -105,7 +105,7 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 git clone https://github.com/jamesso/tessel.git
 cd tessel
 
-# Install dependencies
+# Install dependencies (also runs prepare → sets git hooksPath to scripts/githooks)
 npm install
 
 # Run in development mode (nodemon + Electron; restarts on file changes)

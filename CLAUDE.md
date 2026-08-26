@@ -11,3 +11,7 @@ Never add AI-agent bylines / co-author trailers / "Generated with" footers (Curs
 A `commit-msg` hook in `.git/hooks` (source: `scripts/githooks/commit-msg`) strips those trailers if a tool injects them anyway. Do not disable or bypass that hook.
 
 `AGENTS.md` carries the same rule for Cursor/Codex.
+
+## How to work in this repo
+
+See **How to work in this repo** in `AGENTS.md` (Node version, `npm ci` / `npm test` / dev vs packaging, releases, hook install, `python3` requirement). Keep that section canonical — do not duplicate it here.

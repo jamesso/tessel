@@ -25,7 +25,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 015 | Fill the 2px gap on 3×3 mosaics | P2 | S | 001 | DONE |
 | 016 | Package as asar; unpack only the ffmpeg binary | P3 | M | 002, 008 | TODO |
 | 017 | Upgrade Electron off EOL 39 | P2 | M | 001 | DONE |
-| 018 | Install commit-msg hook on clone; expand agent docs | P3 | S | 009 | TODO |
+| 018 | Install commit-msg hook on clone; expand agent docs | P3 | S | 009 | DONE |
 | 019 | Convert session: cancel, keep grid, toast | P2 | M | 004 | TODO |
 | 020 | Grid layout editor: names, multi-drop | P2 | M | 006 | TODO |
 | 021 | Spike output settings (resolution, audio, fit) | P3 | M | 007, 014 | TODO |

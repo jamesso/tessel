@@ -5,6 +5,7 @@
   "description": "Desktop app for creating mosaic videos",
   "main": "main.js",
   "scripts": {
+    "prepare": "git config core.hooksPath scripts/githooks || true",
     "start": "electron .",
     "dev": " nodemon --exec electron .",
     "package-mac": "npx @electron/packager . --overwrite --no-asar --platform=darwin --arch=arm64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
