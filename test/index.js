@@ -7,3 +7,4 @@ require('./ipc-send.test.js');
 require('./navigation-guard.test.js');
 require('./job-lock.test.js');
 require('./slot-fill.test.js');
+require('./convert-session.test.js');
