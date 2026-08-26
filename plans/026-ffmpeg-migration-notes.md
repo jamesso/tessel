@@ -37,7 +37,7 @@ Unpacked layout: `app.asar.unpacked/node_modules/ffmpeg-static/ffmpeg` (or `ffmp
 
 FFmpeg 6.0 **accepts** `-vsync cfr` but prints: `-vsync is deprecated. Use -fps_mode`.
 
-Decision: **keep `-vsync cfr`** in `lib/mosaic.js` and tests. No semantic change to tpad/overlay/duration goldens; spike 2×2 lavfi encode with unequal durations (tpad + overlay) exited 0. Replace with `-fps_mode cfr` only when a future ffmpeg build rejects `-vsync`.
+Decision: **use `-fps_mode cfr`** in `lib/mosaic.js` (FFmpeg 6 documented replacement). Spike 2×2 lavfi encode with unequal durations (tpad + overlay) exited 0 under FFmpeg 6.0.
 
 ## Spike results (darwin-arm64)
 

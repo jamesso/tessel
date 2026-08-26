@@ -52,6 +52,7 @@ test('sparse 2x2 filter and args contract', () => {
     assert.equal(args[vcodecIndex + 4], '23');
     assert.equal(args[vcodecIndex + 5], '-pix_fmt');
     assert.equal(args[vcodecIndex + 6], 'yuv420p');
+    assert.equal(args[args.indexOf('-fps_mode') + 1], 'cfr');
 });
 
 test('full 2x2 occupied cells letterbox each video', () => {
