@@ -88,6 +88,29 @@
         </main>
         <footer>
             <div class="footer-block container">
+                <div class="output-settings" role="group" aria-label="Output settings">
+                    <label class="output-field">
+                        <span>Resolution</span>
+                        <select id="output-resolution">
+                            <option value="1280x720" selected>1280×720</option>
+                            <option value="1920x1080">1920×1080</option>
+                        </select>
+                    </label>
+                    <label class="output-field">
+                        <span>Audio</span>
+                        <select id="output-audio">
+                            <option value="none" selected>Mute</option>
+                            <option value="first">First clip</option>
+                        </select>
+                    </label>
+                    <label class="output-field">
+                        <span>Fit</span>
+                        <select id="output-fit">
+                            <option value="letterbox" selected>Letterbox</option>
+                            <option value="crop">Crop</option>
+                        </select>
+                    </label>
+                </div>
                 <button class="button" id="convert" type="submit">Convert</button>
             </div>
         </footer>
