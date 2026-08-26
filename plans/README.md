@@ -33,7 +33,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 023 | Investigate `N/A` / NaN durations | P3 | S | 002 | DONE |
 | 024 | Investigate `-pix_fmt yuv420p` | P3 | S | 001 | DONE |
 | 025 | Investigate progress `time=` parser | P3 | S | 001, 014 | DONE |
-| 026 | Replace `@ffmpeg-installer/ffmpeg` (FFmpeg 4.4) | P3 | L | 001, 002, 016 | TODO |
+| 026 | Replace `@ffmpeg-installer/ffmpeg` (FFmpeg 4.4) | P3 | L | 001, 002, 016 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
@@ -75,7 +75,7 @@ Audit finding numbers from the 2026-08-26 survey:
 - **003 can parallel 002**; **004 needs both** so cancel/close knows which children to kill and the renderer can hide the overlay.
 - **005 needs 001** so `build` can `needs: [test]`.
 - **008 after 002** so `ffmpeg.ffprobe` is gone.
-- **016 after 008** so you are not asar-packing 11MB of fluent-ffmpeg coverage; unpack glob is `@ffmpeg-installer` until 026.
+- **016 after 008** so you are not asar-packing 11MB of fluent-ffmpeg coverage; unpack glob targets `ffmpeg-static` (plan 026).
 - **017 (Electron)** is independent of filter work; do not mix with 007/014/015 in one PR.
 - **019 after 004** (kill helper + mutex).
 - **020 after 006** (shared extension list).

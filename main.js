@@ -25,7 +25,7 @@ if (app.isPackaged) {
 }
 
 // Load dependencies
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg')
+const ffmpegBinary = require('ffmpeg-static')
 const { spawn } = require('child_process')
 const {
     matchDurationInStderr,
@@ -47,7 +47,7 @@ const { shouldRejectSecondJob } = require('./lib/job-lock')
 
 const appHtmlRoot = path.join(__dirname, 'app')
 
-debugLog('FFmpeg setup:', { path: ffmpegPath.path, version: ffmpegPath.version })
+debugLog('FFmpeg setup:', { path: ffmpegBinary })
 
 debugLog('Environment check:', {
     NODE_ENV: process.env.NODE_ENV,
@@ -253,10 +253,15 @@ const menu = [
 // Probe duration from ffmpeg stderr headers without decoding the file
 function getVideoDurationWithFFmpeg(videoPath) {
     return new Promise((resolve, reject) => {
+        if (!ffmpegBinary) {
+            reject(new Error('FFmpeg binary not found for this platform'))
+            return
+        }
+
         debugLog('Getting duration with ffmpeg for:', videoPath)
 
         const args = ['-nostdin', '-hide_banner', '-i', videoPath]
-        const ffmpegProcess = spawn(ffmpegPath.path, args)
+        const ffmpegProcess = spawn(ffmpegBinary, args)
         liveProbeProcesses.add(ffmpegProcess)
 
         let output = ''
@@ -325,6 +330,13 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
             const allVideoPaths = [vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPath6, vidPath7, vidPath8, vidPath9]
                 .filter(path => path);
             
+            if (!ffmpegBinary) {
+                debugLog('ERROR: FFmpeg binary not found for this platform')
+                activeEncode = null
+                sendToRenderer('video:error', 'FFmpeg binary not found for this platform')
+                return
+            }
+
             if (allVideoPaths.length === 0) {
                 debugLog('ERROR: No videos provided')
                 activeEncode = null
@@ -406,9 +418,9 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                 const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, filePath);
 
                 debugLog('FFmpeg command args:', args)
-                debugLog('Full FFmpeg command:', ffmpegPath.path + ' ' + args.join(' '))
+                debugLog('Full FFmpeg command:', ffmpegBinary + ' ' + args.join(' '))
 
-                const ffmpegProcess = spawn(ffmpegPath.path, args);
+                const ffmpegProcess = spawn(ffmpegBinary, args);
 
                 activeEncode = ffmpegProcess
                 activeOutputPath = filePath
