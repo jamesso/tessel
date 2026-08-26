@@ -28,7 +28,7 @@ test('matchProgressTimeInStderr extracts progress time', () => {
     assert.equal(matchProgressTimeInStderr('time=00:00:05.00'), 5);
 });
 
-test('progressPercent scales and caps at 99', () => {
+test('progressPercent scales in-progress samples; caps at 99 (100 sent on encode done)', () => {
     assert.equal(progressPercent(50, 100), 50);
     assert.equal(progressPercent(100, 100), 99);
 });

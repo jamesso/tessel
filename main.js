@@ -308,8 +308,15 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                 debugLog('Starting duration analysis...')
                 try {
                     const durations = {}
+                    const total = allVideoPaths.length
+                    let done = 0
                     for (const videoPath of allVideoPaths) {
                         durations[videoPath] = await getVideoDurationWithFFmpeg(videoPath)
+                        done++
+                        sendToRenderer('video:progress', {
+                            percent: Math.round((done / total) * 10),
+                            phase: `Analyzing ${done}/${total}`,
+                        })
                     }
                     assertAllFiniteDurations(durations, allVideoPaths)
                     videoDurations = durations
@@ -423,6 +430,7 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                             debugLog('=== CONVERSION END ===')
                         });
                         
+                        sendToRenderer('video:progress', { percent: 100 });
                         sendToRenderer('video:done');
                     } else {
                         debugLog('FFmpeg failed:', { code, lastOutput: ffmpegOutput.slice(-1000) })
