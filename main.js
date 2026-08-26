@@ -59,6 +59,14 @@ const ffmpegPath = require('@ffmpeg-installer/ffmpeg')
 const ffmpeg = require('fluent-ffmpeg')
 const slash = require('slash')
 const { spawn } = require('child_process')
+const { matchDurationInStderr, matchProgressTimeInStderr, progressPercent } = require('./lib/timecode')
+const {
+    gridMetrics,
+    selectSlotPaths,
+    buildVideoInfo,
+    buildFilterComplex,
+    buildFfmpegArgs,
+} = require('./lib/mosaic')
 
 // Set ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegPath.path);
@@ -201,18 +209,6 @@ const menu = [
     : []),
 ]
 
-function parseTimeToSeconds(timemark) {
-    if (!timemark) return 0;
-    const parts = timemark.split(':');
-    if (parts.length === 3) {
-        const hours = parseInt(parts[0]) || 0;
-        const minutes = parseInt(parts[1]) || 0;
-        const seconds = parseFloat(parts[2]) || 0;
-        return hours * 3600 + minutes * 60 + seconds;
-    }
-    return 0;
-}
-
 // Alternative method to get video duration using ffmpeg when ffprobe is not available
 function getVideoDurationWithFFmpeg(videoPath) {
     return new Promise((resolve, reject) => {
@@ -228,12 +224,9 @@ function getVideoDurationWithFFmpeg(videoPath) {
             output += data.toString();
             
             // Look for duration in the format "Duration: HH:MM:SS.ss"
-            const durationMatch = output.match(/Duration: (\d{2}):(\d{2}):(\d{2}\.\d{2})/);
-            if (durationMatch) {
-                const hours = parseInt(durationMatch[1]);
-                const minutes = parseInt(durationMatch[2]);
-                const seconds = parseFloat(durationMatch[3]);
-                duration = hours * 3600 + minutes * 60 + seconds;
+            const matchedDuration = matchDurationInStderr(output);
+            if (matchedDuration !== null) {
+                duration = matchedDuration;
                 debugLog('Found duration via ffmpeg:', { videoPath, duration })
             }
         });
@@ -330,158 +323,34 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
             const startConversion = (longestDuration) => {
                 debugLog('=== STARTING FFMPEG CONVERSION ===')
                 debugLog('Longest duration determined:', longestDuration)
-                
-                let command = ffmpeg()
-                
-                // Change this to the desired output resolution  
-                let x=1280, y=720;
+
+                const { gridSize, blockWidth, blockHeight } = gridMetrics(gridType);
                 const isGrid3x3 = gridType === '3x3';
-                const gridSize = isGrid3x3 ? 3 : 2;
-                const blockWidth = Math.floor(x / gridSize);
-                const blockHeight = Math.floor(y / gridSize);
 
                 debugLog('Grid configuration:', { gridType, isGrid3x3, gridSize, blockWidth, blockHeight })
 
-                let videoInfo = [];
-                let inputIndex = 0;
-
-                // Parse arguments and add inputs (videos or black)
-                let videoPaths = isGrid3x3 ? originalPaths : originalPaths.slice(0, 4);
-                    
-                videoPaths.forEach(function (val, index, array) {
+                const slotPaths = selectSlotPaths(originalPaths, gridType);
+                slotPaths.forEach(function (val, index) {
                     if (val) {
-                        // Real video file
                         debugLog(`Position ${index}: Input File`, val)
-                        videoInfo.push({			
-                            filename: val,
-                            inputIndex: inputIndex,
-                            isBlack: false,
-                            duration: videoDurations[val] || longestDuration
-                        });
-                        command = command.addInput(val);
-                        inputIndex++;
                     } else {
-                        // Black video placeholder
                         debugLog(`Position ${index}: Using black placeholder`)
-                        videoInfo.push({			
-                            filename: null,
-                            inputIndex: -1, // Will use color source
-                            isBlack: true,
-                            duration: longestDuration
-                        });
                     }
-                });	
+                });
+
+                const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
 
                 debugLog('Video info array:', videoInfo)
-            
-                // Set coordinates for each position based on grid type
-                for (let i = 0; i < videoInfo.length; i++) {
-                    const row = Math.floor(i / gridSize);
-                    const col = i % gridSize;
-                    videoInfo[i].coord = { 
-                        x: col * blockWidth, 
-                        y: row * blockHeight 
-                    };
-                }
-                
                 debugLog('Video info with coordinates:', videoInfo)
-                
-                let complexFilter = [];
-                
-                // Step 1: Create all video blocks with proper scaling and padding
-                videoInfo.forEach(function (val, index, array) {
-                    if (val.isBlack) {
-                        // Create black video block for the full duration
-                        complexFilter.push(`color=black:size=${blockWidth}x${blockHeight}:duration=${longestDuration}:rate=25 [block${index}]`);
-                    } else {
-                        // Reset PTS, scale, and pad to exact duration
-                        complexFilter.push({
-                            filter: 'setpts', 
-                            options: 'PTS-STARTPTS',
-                            inputs: val.inputIndex + ':v', 
-                            outputs: 'reset' + index
-                        });
-                        
-                        complexFilter.push({
-                            filter: 'scale', 
-                            options: [blockWidth, blockHeight],
-                            inputs: 'reset' + index, 
-                            outputs: 'scaled' + index
-                        });
-                        
-                        // Calculate padding needed to reach longest duration
-                        const paddingDuration = longestDuration - val.duration;
-                        
-                        if (paddingDuration > 0.1) { // Only pad if significant difference
-                            // Use tpad to add black frames after video ends
-                            complexFilter.push({
-                                filter: 'tpad',
-                                options: `stop_mode=add:stop_duration=${paddingDuration}:color=black`,
-                                inputs: 'scaled' + index,
-                                outputs: 'block' + index
-                            });
-                        } else {
-                            // Video is already close to longest duration, no padding needed
-                            complexFilter.push({
-                                filter: 'copy',
-                                inputs: 'scaled' + index,
-                                outputs: 'block' + index
-                            });
-                        }
-                    }
-                });
-                
-                // Step 2: Create the final canvas and build the mosaic
-                complexFilter.push(`color=black:size=${x}x${y}:duration=${longestDuration}:rate=25 [canvas]`);
-                
-                // Build Mosaic on the canvas
-                videoInfo.forEach(function (val, index, array) {
-                    const baseInput = index === 0 ? 'canvas' : 'mosaic' + index;
-                    const outputName = index === videoInfo.length - 1 ? 'final' : 'mosaic' + (index + 1);
-                    
-                    complexFilter.push({
-                        filter: 'overlay', 
-                        options: { x: val.coord.x, y: val.coord.y },
-                        inputs: [baseInput, 'block' + index], 
-                        outputs: outputName
-                    });
-                });
 
-                debugLog('Complex filter array:', complexFilter)
-                
-                const totalFrames = Math.ceil(longestDuration * 25); // 25fps
-                debugLog('Expected frame count:', totalFrames)
-                
-                // Convert filter array to string
-                const filterComplex = complexFilter.map(filter => {
-                    if (typeof filter === 'string') {
-                        return filter;
-                    } else {
-                        const inputs = Array.isArray(filter.inputs) ? filter.inputs.join('][') : filter.inputs;
-                        const options = filter.options ? 
-                            (Array.isArray(filter.options) ? filter.options.join(':') : 
-                             typeof filter.options === 'object' ? Object.entries(filter.options).map(([k,v]) => `${k}=${v}`).join(':') : 
-                             filter.options) : '';
-                        return `[${inputs}]${filter.filter}${options ? '=' + options : ''}[${filter.outputs}]`;
-                    }
-                }).join(';');
+                const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
 
                 debugLog('Filter complex string:', filterComplex)
 
-                const args = [
-                    '-i', videoInfo.find(v => !v.isBlack).filename,
-                    ...(videoInfo.filter(v => !v.isBlack).slice(1).map(v => ['-i', v.filename]).flat()),
-                    '-y',
-                    '-filter_complex', filterComplex,
-                    '-map', '[final]',
-                    '-an',
-                    '-vcodec', 'libx264',
-                    '-r', '25',
-                    '-t', longestDuration.toString(),
-                    '-avoid_negative_ts', 'make_zero',
-                    '-vsync', 'cfr',
-                    filePath
-                ];
+                const totalFrames = Math.ceil(longestDuration * 25); // 25fps
+                debugLog('Expected frame count:', totalFrames)
+
+                const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, filePath);
 
                 debugLog('FFmpeg command args:', args)
                 debugLog('Full FFmpeg command:', ffmpegPath.path + ' ' + args.join(' '))
@@ -495,14 +364,9 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                     ffmpegOutput += output;
                     debugLog('FFmpeg stderr:', output)
                     
-                    // Parse progress from stderr
-                    const timeMatch = output.match(/time=(\d{2}):(\d{2}):(\d{2}\.\d{2})/);
-                    if (timeMatch) {
-                        const hours = parseInt(timeMatch[1]);
-                        const minutes = parseInt(timeMatch[2]);
-                        const seconds = parseFloat(timeMatch[3]);
-                        const currentTime = hours * 3600 + minutes * 60 + seconds;
-                        const percent = Math.min(Math.round((currentTime / longestDuration) * 100), 99);
+                    const currentTime = matchProgressTimeInStderr(output);
+                    if (currentTime !== null) {
+                        const percent = progressPercent(currentTime, longestDuration);
                         
                         debugLog('Progress update:', { currentTime, percent, longestDuration })
                         if (mainWindow && mainWindow.webContents) {
