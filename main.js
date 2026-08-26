@@ -121,9 +121,7 @@ function setupIPC() {
         return os.homedir()
     })
 
-
-
-
+    ipcMain.handle('app:getVersion', () => app.getVersion())
 
     ipcMain.on('video:convert', (e, options) => {
         console.log(options)
@@ -164,7 +162,8 @@ function createAboutWindow() {
         resizable: false,
         webPreferences: {
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload-about.js')
         }
     })
 
