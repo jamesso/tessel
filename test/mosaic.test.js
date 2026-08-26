@@ -99,6 +99,53 @@ test('args include -t equal to String(longestDuration)', () => {
     assert.equal(args[tIndex + 1], String(longestDuration));
 });
 
+test('3x3 column widths sum to 1280 with last column 428px', () => {
+    const { columnWidths } = gridMetrics('3x3');
+    assert.deepEqual(columnWidths, [426, 426, 428]);
+    assert.equal(columnWidths.reduce((sum, w) => sum + w, 0), 1280);
+});
+
+test('3x3 overlay positions and cell sizes fill canvas width', () => {
+    const longestDuration = 10;
+    const slotPaths = ninePaths;
+    const videoDurations = Object.fromEntries(ninePaths.map(p => [p, 10]));
+    const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
+    const { blockWidth, blockHeight } = gridMetrics('3x3');
+    const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
+
+    assert.equal(videoInfo[0].coord.x, 0);
+    assert.equal(videoInfo[1].coord.x, 426);
+    assert.equal(videoInfo[2].coord.x, 852);
+    assert.equal(videoInfo[0].cellWidth, 426);
+    assert.equal(videoInfo[1].cellWidth, 426);
+    assert.equal(videoInfo[2].cellWidth, 428);
+
+    const lastCell = videoInfo[8];
+    assert.equal(lastCell.coord.x + lastCell.cellWidth, 1280);
+
+    assert.match(filterComplex, /scale=428:240:force_original_aspect_ratio=decrease/);
+    assert.match(filterComplex, /pad=428:240:\(ow-iw\)\/2:\(oh-ih\)\/2:black/);
+    assert.match(filterComplex, /overlay=x=852:y=480\[final\]/);
+});
+
+test('3x3 black placeholder in last column uses 428px width', () => {
+    const longestDuration = 10;
+    const slotPaths = [null, null, null, null, null, null, null, null, null];
+    const videoInfo = buildVideoInfo(slotPaths, {}, longestDuration);
+    const { blockWidth, blockHeight } = gridMetrics('3x3');
+    const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
+
+    assert.match(filterComplex, /color=black:size=428x240/);
+});
+
+test('2x2 grid metrics unchanged', () => {
+    const { gridSize, blockWidth, blockHeight, columnWidths } = gridMetrics('2x2');
+    assert.equal(gridSize, 2);
+    assert.equal(blockWidth, 640);
+    assert.equal(blockHeight, 360);
+    assert.deepEqual(columnWidths, [640, 640]);
+});
+
 test('buildFfmpegArgs throws when all slots are black', () => {
     const slotPaths = [null, null, null, null];
     const videoInfo = buildVideoInfo(slotPaths, {}, 10);
