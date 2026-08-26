@@ -66,6 +66,9 @@ const {
     buildFfmpegArgs,
 } = require('./lib/mosaic')
 const { canSend } = require('./lib/ipc-send')
+const { attachNavigationGuard } = require('./lib/navigation-guard')
+
+const appHtmlRoot = path.join(__dirname, 'app')
 
 // Set ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegPath.path);
@@ -154,6 +157,8 @@ function createMainWindow() {
         }
     })
 
+    attachNavigationGuard(mainWindow, appHtmlRoot, shell)
+
     // Open dev tools only in development mode
     if (isDev) {
         mainWindow.webContents.openDevTools()
@@ -177,6 +182,8 @@ function createAboutWindow() {
             preload: path.join(__dirname, 'preload-about.js')
         }
     })
+
+    attachNavigationGuard(aboutWindow, appHtmlRoot, shell)
 
     aboutWindow.loadFile(path.join(__dirname, 'app/about.html'))
 }

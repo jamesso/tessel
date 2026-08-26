@@ -18,7 +18,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 008 | Remove fluent-ffmpeg encode path and `slash` | P2 | S | 002 | TODO |
 | 009 | Fix README: `npm start` is not a production build | P2 | S | — | DONE |
 | 010 | Stop writing debug logs to the Desktop | P2 | S | — | TODO |
-| 011 | Open the About GitHub link in the system browser | P2 | S | — | TODO |
+| 011 | Open the About GitHub link in the system browser | P2 | S | — | DONE |
 | 012 | Set Windows packager metadata to Tessel | P2 | S | — | DONE |
 | 013 | Show About version from `app.getVersion()` | P2 | S | — | DONE |
 | 014 | Faster libx264 preset and progress during probe | P2 | S | 001, 002 | TODO |
