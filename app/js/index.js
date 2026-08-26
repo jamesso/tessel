@@ -38,11 +38,7 @@ function switchGrid(gridType) {
                 dz.classList.remove('hidden')
             } else {
                 dz.classList.add('hidden')
-                // Clear hidden dropzones
-                const vidNum = index + 1
-                window['vidPath' + vidNum] = undefined
-                dz.classList.remove('file')
-                dz.classList.add('empty')
+                clearSlot(dz, index + 1)
             }
         } else if (gridType === '3x3') {
             // Show all 9
@@ -61,6 +57,54 @@ var vidPath7 = undefined
 var vidPath8 = undefined
 var vidPath9 = undefined
 var currentGrid = '2x2' // Default grid type
+
+function fileBasename(filePath) {
+    if (!filePath) {
+        return ''
+    }
+    const parts = String(filePath).split(/[/\\]/)
+    return parts[parts.length - 1] || String(filePath)
+}
+
+function setSlotOccupied(dropzone, filePath) {
+    const vidNum = dropzone.getAttribute('id').split('-')[1]
+    window['vidPath' + vidNum] = filePath
+    dropzone.classList.remove('empty')
+    dropzone.classList.add('file')
+
+    const emptyIcon = dropzone.querySelector('.empty-icon')
+    const fileIcon = dropzone.querySelector('.file-icon')
+    const closeBtn = dropzone.querySelector('.close-btn')
+    const label = dropzone.querySelector('.file-label')
+    if (emptyIcon) emptyIcon.classList.add('hidden')
+    if (fileIcon) fileIcon.classList.remove('hidden')
+    if (closeBtn) closeBtn.classList.remove('hidden')
+    if (label) {
+        const name = fileBasename(filePath)
+        label.textContent = name
+        label.title = name
+        label.classList.remove('hidden')
+    }
+}
+
+function clearSlot(dropzone, vidNum) {
+    window['vidPath' + vidNum] = undefined
+    dropzone.classList.add('empty')
+    dropzone.classList.remove('file')
+
+    const emptyIcon = dropzone.querySelector('.empty-icon')
+    const fileIcon = dropzone.querySelector('.file-icon')
+    const closeBtn = dropzone.querySelector('.close-btn')
+    const label = dropzone.querySelector('.file-label')
+    if (emptyIcon) emptyIcon.classList.remove('hidden')
+    if (fileIcon) fileIcon.classList.add('hidden')
+    if (closeBtn) closeBtn.classList.add('hidden')
+    if (label) {
+        label.textContent = ''
+        label.removeAttribute('title')
+        label.classList.add('hidden')
+    }
+}
 
 // File drop handling is now done directly in the ondrop event handlers
 
@@ -94,44 +138,58 @@ for (let i = 0; i < dz.length; i++){
         e.preventDefault();
         dz[i].classList.remove("hover");
         dz[i].classList.remove("copy");
-        
-        const files = e.dataTransfer.files;
-        console.log('Files dropped:', files.length);
-        
-        if (files.length > 0) {
-            const file = files[0]; // Only use the first file
-            console.log('Processing file:', file.name, 'Type:', file.type, 'Path:', file.path);
-            
-            // Check if it's a video file (MIME type or extension fallback)
+
+        const files = Array.from(e.dataTransfer.files || []);
+        if (files.length === 0) {
+            return false;
+        }
+
+        // Single-file drop fills the targeted slot even if occupied (replace).
+        if (files.length === 1) {
+            const file = files[0];
             if (!window.electronAPI.isProbablyVideoFile({ type: file.type, name: file.name })) {
-                console.warn('File is not a video:', file.type, file.name);
                 alert('Please drop a video file (MP4, MOV, etc.)');
                 return false;
             }
-            
-            // Get file path using webUtils API
             const filePath = window.electronAPI.getPathForFile(file);
-            console.log('webUtils.getPathForFile result:', filePath);
-            
             if (filePath) {
-                console.log('Successfully got file path:', filePath);
-                window['vidPath' + vidNum] = filePath;
-                dz[i].classList.remove("empty");
-                dz[i].classList.add("file");
-                
-                // Update dropzone icons and close button
-                const emptyIcon = dz[i].querySelector('.empty-icon');
-                const fileIcon = dz[i].querySelector('.file-icon');
-                const closeBtn = dz[i].querySelector('.close-btn');
-                if (emptyIcon) emptyIcon.classList.add('hidden');
-                if (fileIcon) fileIcon.classList.remove('hidden');
-                if (closeBtn) closeBtn.classList.remove('hidden');
+                setSlotOccupied(dz[i], filePath);
             } else {
-                console.error('Failed to get file path via webUtils');
                 alert('Could not access the dropped file. Please use click-to-select instead.');
             }
+            return false;
         }
-        
+
+        const videos = files.filter(function (file) {
+            return window.electronAPI.isProbablyVideoFile({ type: file.type, name: file.name });
+        });
+        if (videos.length === 0) {
+            alert('Please drop a video file (MP4, MOV, etc.)');
+            return false;
+        }
+
+        // Assignment: start at the drop-target slot index, then wrap through
+        // currently visible empty slots only (2×2: indices 0–3; 3×3: 0–8).
+        // Never assign into hidden slots 5–9 while 2×2 is active. Files beyond
+        // empty slots are ignored (alert once).
+        const visibleCount = currentGrid === '2x2' ? 4 : 9;
+        const occupied = [];
+        for (let s = 0; s < visibleCount; s++) {
+            occupied[s] = Boolean(window['vidPath' + (s + 1)]);
+        }
+        const emptyIndices = window.nextEmptySlots(occupied, visibleCount);
+        const slotIndices = window.assignDrops(emptyIndices, i, videos.length);
+        const allDropzones = document.querySelectorAll('.dropzone');
+        for (let k = 0; k < slotIndices.length; k++) {
+            const filePath = window.electronAPI.getPathForFile(videos[k]);
+            if (filePath) {
+                setSlotOccupied(allDropzones[slotIndices[k]], filePath);
+            }
+        }
+        if (videos.length > slotIndices.length) {
+            alert('Some files were not added because there are no empty slots left.');
+        }
+
         return false;
     };
 
@@ -157,17 +215,7 @@ for (let i = 0; i < dz.length; i++){
             if (!Array.isArray(filePaths) || !filePaths.length) { 
                 return;
             } else { 
-                window['vidPath' + vidNum] = filePaths.toString()
-                dz[i].classList.remove("empty");
-                dz[i].classList.add("file");
-                
-                // Update dropzone icons and close button
-                const emptyIcon = dz[i].querySelector('.empty-icon');
-                const fileIcon = dz[i].querySelector('.file-icon');
-                const closeBtn = dz[i].querySelector('.close-btn');
-                if (emptyIcon) emptyIcon.classList.add('hidden');
-                if (fileIcon) fileIcon.classList.remove('hidden');
-                if (closeBtn) closeBtn.classList.remove('hidden');
+                setSlotOccupied(dz[i], filePaths[0] || filePaths.toString())
             } 
         } catch (err) {
             console.log('Open failed:', err)
@@ -258,53 +306,16 @@ electronAPI.receive('video:done', () => {
 
 // Function to clear all video positions
 function clearAllVideos() {
-    vidPath1 = undefined
-    vidPath2 = undefined
-    vidPath3 = undefined
-    vidPath4 = undefined
-    vidPath5 = undefined
-    vidPath6 = undefined
-    vidPath7 = undefined
-    vidPath8 = undefined
-    vidPath9 = undefined
-    
-    let clear = document.querySelectorAll('.file')
-    console.log('Clearing', clear.length, 'video positions');
-    for (let i = 0; i < clear.length; i++){
-        clear[i].classList.add("empty")
-        clear[i].classList.remove("file")
-        
-        // Reset icons and close button
-        const emptyIcon = clear[i].querySelector('.empty-icon');
-        const fileIcon = clear[i].querySelector('.file-icon');
-        const closeBtn = clear[i].querySelector('.close-btn');
-        if (emptyIcon) emptyIcon.classList.remove('hidden');
-        if (fileIcon) fileIcon.classList.add('hidden');
-        if (closeBtn) closeBtn.classList.add('hidden');
-    }
-    console.log("Videos cleared")
+    const dropzones = document.querySelectorAll('.dropzone')
+    dropzones.forEach(function (dropzone, index) {
+        clearSlot(dropzone, index + 1)
+    })
 }
 
-// Function to clear individual video position
 function clearVideo(videoNum) {
-    console.log('Clearing video position:', videoNum)
-    
-    // Clear the video path variable
-    window['vidPath' + videoNum] = undefined
-    
-    // Find the corresponding dropzone
     const dropzone = document.getElementById(`video-${videoNum}-1`)
     if (dropzone) {
-        dropzone.classList.add("empty")
-        dropzone.classList.remove("file")
-        
-        // Reset icons and close button
-        const emptyIcon = dropzone.querySelector('.empty-icon');
-        const fileIcon = dropzone.querySelector('.file-icon');
-        const closeBtn = dropzone.querySelector('.close-btn');
-        if (emptyIcon) emptyIcon.classList.remove('hidden');
-        if (fileIcon) fileIcon.classList.add('hidden');
-        if (closeBtn) closeBtn.classList.add('hidden');
+        clearSlot(dropzone, videoNum)
     }
 }
 
