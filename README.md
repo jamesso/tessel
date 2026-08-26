@@ -85,7 +85,7 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 
 ## Technical Details
 
-- **Built with**: Electron 39.8.10
+- **Built with**: Electron 44.0.0
 - **Video Processing**: FFmpeg with fluent-ffmpeg
 - **Architecture**: Modern Electron with context isolation and security best practices
 - **Output Format**: MP4 with H.264 encoding at 25fps
