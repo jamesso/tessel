@@ -5,6 +5,7 @@ on:
     branches: [ master, main ]
   pull_request:
     branches: [ master, main ]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -54,9 +55,9 @@ jobs:
           echo "package.json not changed"
         fi
 
-
-
   build:
+    needs: [test, check-version]
+    if: github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true'
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -127,7 +128,7 @@ jobs:
 
   release:
     needs: [check-version, build]
-    if: needs.check-version.outputs.version-changed == 'true'
+    if: github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -143,79 +144,53 @@ jobs:
     - name: Display structure of downloaded files
       run: ls -la artifacts/
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ needs.check-version.outputs.version }}
-        release_name: Tessel v${{ needs.check-version.outputs.version }}
-        body: |
-          ## Tessel v${{ needs.check-version.outputs.version }}
-          
-          ### Downloads
-          - **macOS (ARM64)**: Download `tessel-macos-arm64.tar.gz` for Apple Silicon Macs
-          - **Linux (x64)**: Download `tessel-linux-x64.tar.gz` for 64-bit Linux systems  
-          - **Windows (x64)**: Download `tessel-windows-x64.zip` for 64-bit Windows systems
-          
-          ### Installation
-          
-          #### macOS Users - Important Security Notice
-          Due to Apple's security requirements, you may see a "damaged app" warning when first opening Tessel. This is normal for apps not distributed through the App Store. To run Tessel safely:
-          
-          **Option 1 (Recommended):**
-          1. Extract the downloaded archive
-          2. **Right-click** on `Tessel.app` and select "Open" (don't double-click)
-          3. Click "Open" when prompted about the unidentified developer
-          
-          **Option 2 (Terminal):**
-          1. Extract the downloaded archive
-          2. Open Terminal and run: `xattr -dr com.apple.quarantine /path/to/Tessel.app`
-          3. Then double-click to open normally
-          
-          #### Other Platforms
-          1. Download the appropriate package for your platform
-          2. Extract the archive
-          3. Run the Tessel executable
-          
-          ### Features
-          - Create mosaic videos
-          - Support for 2x2 and 3x3 grids
-          - Drag and drop file support
-          - Real-time conversion progress
-          
-          ### Changes
-          See the commit history for detailed changes in this version.
-        draft: false
-        prerelease: false
+    - name: Write release notes
+      run: |
+        cat > release-notes.md <<'EOF'
+        ## Tessel v${{ needs.check-version.outputs.version }}
+        
+        ### Downloads
+        - **macOS (ARM64)**: Download `tessel-macos-arm64.tar.gz` for Apple Silicon Macs
+        - **Linux (x64)**: Download `tessel-linux-x64.tar.gz` for 64-bit Linux systems  
+        - **Windows (x64)**: Download `tessel-windows-x64.zip` for 64-bit Windows systems
+        
+        ### Installation
+        
+        #### macOS Users - Important Security Notice
+        Due to Apple's security requirements, you may see a "damaged app" warning when first opening Tessel. This is normal for apps not distributed through the App Store. To run Tessel safely:
+        
+        **Option 1 (Recommended):**
+        1. Extract the downloaded archive
+        2. **Right-click** on `Tessel.app` and select "Open" (don't double-click)
+        3. Click "Open" when prompted about the unidentified developer
+        
+        **Option 2 (Terminal):**
+        1. Extract the downloaded archive
+        2. Open Terminal and run: `xattr -dr com.apple.quarantine /path/to/Tessel.app`
+        3. Then double-click to open normally
+        
+        #### Other Platforms
+        1. Download the appropriate package for your platform
+        2. Extract the archive
+        3. Run the Tessel executable
+        
+        ### Features
+        - Create mosaic videos
+        - Support for 2x2 and 3x3 grids
+        - Drag and drop file support
+        - Real-time conversion progress
+        
+        ### Changes
+        See the commit history for detailed changes in this version.
+        EOF
 
-    - name: Upload macOS Release Asset
-      uses: actions/upload-release-asset@v1
+    - name: Create GitHub Release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/tessel-macos-arm64/tessel-macos-arm64.tar.gz
-        asset_name: tessel-macos-arm64.tar.gz
-        asset_content_type: application/gzip
-
-    - name: Upload Linux Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/tessel-linux-x64/tessel-linux-x64.tar.gz
-        asset_name: tessel-linux-x64.tar.gz
-        asset_content_type: application/gzip
-
-    - name: Upload Windows Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/tessel-windows-x64/tessel-windows-x64.zip
-        asset_name: tessel-windows-x64.zip
-        asset_content_type: application/zip 
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "v${{ needs.check-version.outputs.version }}" \
+          artifacts/tessel-macos-arm64/tessel-macos-arm64.tar.gz \
+          artifacts/tessel-linux-x64/tessel-linux-x64.tar.gz \
+          artifacts/tessel-windows-x64/tessel-windows-x64.zip \
+          --title "Tessel v${{ needs.check-version.outputs.version }}" \
+          --notes-file release-notes.md
