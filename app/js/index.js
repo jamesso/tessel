@@ -102,9 +102,9 @@ for (let i = 0; i < dz.length; i++){
             const file = files[0]; // Only use the first file
             console.log('Processing file:', file.name, 'Type:', file.type, 'Path:', file.path);
             
-            // Check if it's a video file
-            if (!file.type.startsWith('video/')) {
-                console.warn('File is not a video:', file.type);
+            // Check if it's a video file (MIME type or extension fallback)
+            if (!window.electronAPI.isProbablyVideoFile({ type: file.type, name: file.name })) {
+                console.warn('File is not a video:', file.type, file.name);
                 alert('Please drop a video file (MP4, MOV, etc.)');
                 return false;
             }
@@ -148,7 +148,7 @@ for (let i = 0; i < dz.length; i++){
         const options = {
             defaultPath: defaultPath,
             filters :[
-            {name: 'Movies', extensions: ['mp4']}
+            {name: 'Movies', extensions: window.electronAPI.VIDEO_EXTENSIONS}
             ]
         }
         

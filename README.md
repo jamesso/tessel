@@ -77,7 +77,10 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 
 - MP4 (recommended)
 - MOV
+- M4V
+- WebM
 - AVI
+- MKV
 - And other formats supported by FFmpeg
 
 ## Technical Details

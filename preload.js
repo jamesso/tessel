@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron')
+const { VIDEO_EXTENSIONS, isProbablyVideoFile } = require('./lib/media-accept')
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -43,5 +44,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       console.error('webUtils.getPathForFile failed:', error)
       return null
     }
-  }
-}) 
+  },
+
+  VIDEO_EXTENSIONS,
+  isProbablyVideoFile: (file) => isProbablyVideoFile(file)
+})
