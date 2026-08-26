@@ -8,7 +8,7 @@
     "start": "electron .",
     "dev": " nodemon --exec electron .",
     "package-mac": "npx @electron/packager . --overwrite --no-asar --platform=darwin --arch=arm64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
-    "package-win": "npx @electron/packager . --overwrite --no-asar --platform=win32 --arch=x64 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --win32metadata.CompanyName=CE --win32metadata.FileDescription=CE --win32metadata.ProductName=\"Tessel\"",
+    "package-win": "npx @electron/packager . --overwrite --no-asar --platform=win32 --arch=x64 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --win32metadata.CompanyName=Tessel --win32metadata.FileDescription=Tessel --win32metadata.ProductName=\"Tessel\"",
     "package-linux": "npx @electron/packager . --overwrite --no-asar --platform=linux --arch=x64 --icon=assets/icons/linux/icon.png --prune=true --out=release-builds",
     "test": "node --test test/"
   },

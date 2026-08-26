@@ -19,7 +19,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 009 | Fix README: `npm start` is not a production build | P2 | S | — | TODO |
 | 010 | Stop writing debug logs to the Desktop | P2 | S | — | TODO |
 | 011 | Open the About GitHub link in the system browser | P2 | S | — | TODO |
-| 012 | Set Windows packager metadata to Tessel | P2 | S | — | TODO |
+| 012 | Set Windows packager metadata to Tessel | P2 | S | — | DONE |
 | 013 | Show About version from `app.getVersion()` | P2 | S | — | TODO |
 | 014 | Faster libx264 preset and progress during probe | P2 | S | 001, 002 | TODO |
 | 015 | Fill the 2px gap on 3×3 mosaics | P2 | S | 001 | TODO |
