@@ -59,7 +59,13 @@ const ffmpegPath = require('@ffmpeg-installer/ffmpeg')
 const ffmpeg = require('fluent-ffmpeg')
 const slash = require('slash')
 const { spawn } = require('child_process')
-const { matchDurationInStderr, matchProgressTimeInStderr, progressPercent } = require('./lib/timecode')
+const {
+    matchDurationInStderr,
+    matchProgressTimeInStderr,
+    progressPercent,
+    maxDurationFromMap,
+    assertAllFiniteDurations,
+} = require('./lib/timecode')
 const {
     gridMetrics,
     selectSlotPaths,
@@ -70,15 +76,6 @@ const {
 
 // Set ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegPath.path);
-
-// Try to set ffprobe path - it might not be available in packaged apps
-try {
-    const ffprobePath = require('@ffmpeg-installer/ffprobe')
-    ffmpeg.setFfprobePath(ffprobePath.path);
-    debugLog('FFprobe setup:', { path: ffprobePath.path, version: ffprobePath.version })
-} catch (err) {
-    debugLog('FFprobe not available, will use alternative method:', err.message)
-}
 
 debugLog('FFmpeg setup:', { path: ffmpegPath.path, version: ffmpegPath.version })
 
@@ -93,6 +90,13 @@ debugLog('Environment check:', {
 
 let mainWindow
 let aboutWindow
+const liveProbeProcesses = new Set()
+
+function sendToRenderer(channel, ...args) {
+    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
+        mainWindow.webContents.send(channel, ...args)
+    }
+}
 
 // Set up IPC handlers before creating windows
 function setupIPC() {
@@ -209,42 +213,58 @@ const menu = [
     : []),
 ]
 
-// Alternative method to get video duration using ffmpeg when ffprobe is not available
+// Probe duration from ffmpeg stderr headers without decoding the file
 function getVideoDurationWithFFmpeg(videoPath) {
     return new Promise((resolve, reject) => {
         debugLog('Getting duration with ffmpeg for:', videoPath)
-        
-        const args = ['-i', videoPath, '-f', 'null', '-'];
-        const ffmpegProcess = spawn(ffmpegPath.path, args);
-        
-        let output = '';
-        let duration = null;
-        
-        ffmpegProcess.stderr.on('data', (data) => {
-            output += data.toString();
-            
-            // Look for duration in the format "Duration: HH:MM:SS.ss"
-            const matchedDuration = matchDurationInStderr(output);
-            if (matchedDuration !== null) {
-                duration = matchedDuration;
-                debugLog('Found duration via ffmpeg:', { videoPath, duration })
+
+        const args = ['-nostdin', '-hide_banner', '-i', videoPath]
+        const ffmpegProcess = spawn(ffmpegPath.path, args)
+        liveProbeProcesses.add(ffmpegProcess)
+
+        let output = ''
+        let duration = null
+        let settled = false
+
+        const finish = (fn) => {
+            if (settled) return
+            settled = true
+            liveProbeProcesses.delete(ffmpegProcess)
+            fn()
+        }
+
+        const tryResolveWithDuration = () => {
+            if (duration !== null && Number.isFinite(duration) && duration > 0) {
+                ffmpegProcess.kill()
+                finish(() => resolve(duration))
             }
-        });
-        
-        ffmpegProcess.on('close', (code) => {
-            if (duration !== null) {
-                resolve(duration);
+        }
+
+        ffmpegProcess.stderr.on('data', (data) => {
+            output += data.toString()
+            const parsed = matchDurationInStderr(output)
+            if (parsed !== null && Number.isFinite(parsed) && parsed > 0) {
+                duration = parsed
+                debugLog('Found duration via ffmpeg:', { videoPath, duration })
+                tryResolveWithDuration()
+            }
+        })
+
+        ffmpegProcess.on('close', () => {
+            if (settled) return
+            if (duration !== null && Number.isFinite(duration) && duration > 0) {
+                finish(() => resolve(duration))
             } else {
                 debugLog('Could not extract duration from ffmpeg output for:', videoPath)
-                reject(new Error('Could not extract duration'));
+                finish(() => reject(new Error('Could not extract duration')))
             }
-        });
-        
+        })
+
         ffmpegProcess.on('error', (err) => {
             debugLog('FFmpeg duration check failed:', err.message)
-            reject(err);
-        });
-    });
+            finish(() => reject(err))
+        })
+    })
 }
 
 function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPath6, vidPath7, vidPath8, vidPath9, gridType, filePath }) {
@@ -274,50 +294,23 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
 
             // Get duration of all videos to find the longest one
             let videoDurations = {};
-            let maxDuration = 0;
-            let processedCount = 0;
             
-            const processDurations = () => {
+            const processDurations = async () => {
                 debugLog('Starting duration analysis...')
-                allVideoPaths.forEach((videoPath, index) => {
-                    // Try ffprobe first, fallback to ffmpeg
-                    ffmpeg.ffprobe(videoPath, (err, metadata) => {
-                        if (!err && metadata && metadata.format && metadata.format.duration) {
-                            const duration = parseFloat(metadata.format.duration);
-                            videoDurations[videoPath] = duration;
-                            maxDuration = Math.max(maxDuration, duration);
-                            debugLog(`Video ${index} duration (ffprobe):`, { path: videoPath, duration: duration })
-                            
-                            processedCount++;
-                            if (processedCount === allVideoPaths.length) {
-                                debugLog('Duration analysis complete:', { maxDuration, videoDurations })
-                                startConversion(maxDuration);
-                            }
-                        } else {
-                            debugLog(`FFprobe failed for video ${index}, trying ffmpeg fallback:`, { path: videoPath, error: err?.message })
-                            
-                            // Fallback to ffmpeg method
-                            getVideoDurationWithFFmpeg(videoPath)
-                                .then(duration => {
-                                    videoDurations[videoPath] = duration;
-                                    maxDuration = Math.max(maxDuration, duration);
-                                    debugLog(`Video ${index} duration (ffmpeg):`, { path: videoPath, duration: duration })
-                                })
-                                .catch(ffmpegErr => {
-                                    debugLog(`WARNING: Both ffprobe and ffmpeg failed for video ${index}:`, { path: videoPath, ffprobeError: err?.message, ffmpegError: ffmpegErr.message })
-                                    videoDurations[videoPath] = 10;
-                                    maxDuration = Math.max(maxDuration, 10);
-                                })
-                                .finally(() => {
-                                    processedCount++;
-                                    if (processedCount === allVideoPaths.length) {
-                                        debugLog('Duration analysis complete:', { maxDuration, videoDurations })
-                                        startConversion(maxDuration);
-                                    }
-                                });
-                        }
-                    });
-                });
+                try {
+                    const durations = {}
+                    for (const videoPath of allVideoPaths) {
+                        durations[videoPath] = await getVideoDurationWithFFmpeg(videoPath)
+                    }
+                    assertAllFiniteDurations(durations, allVideoPaths)
+                    videoDurations = durations
+                    const maxDuration = maxDurationFromMap(durations)
+                    debugLog('Duration analysis complete:', { maxDuration, videoDurations })
+                    startConversion(maxDuration)
+                } catch (err) {
+                    debugLog('Duration probe failed:', err.message)
+                    sendToRenderer('video:error', 'Could not read video duration')
+                }
             };
 
             const startConversion = (longestDuration) => {
