@@ -57,7 +57,7 @@ jobs:
 
   build:
     needs: [test, check-version]
-    if: github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true'
+    if: (github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true') || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -96,7 +96,7 @@ jobs:
       run: npm ci
 
     - name: Ensure Electron binary
-      run: npx electron --version
+      run: node -e "const fs=require('fs'); const p=require('electron'); fs.accessSync(p); console.log(p)"
 
     - name: Build package
       run: npm run ${{ matrix.script }}
@@ -131,7 +131,7 @@ jobs:
 
   release:
     needs: [check-version, build]
-    if: github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true'
+    if: (github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
