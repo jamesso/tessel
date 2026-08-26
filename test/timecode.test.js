@@ -24,6 +24,10 @@ test('matchDurationInStderr returns null when no match', () => {
     assert.equal(matchDurationInStderr('no duration here'), null);
 });
 
+test('matchDurationInStderr returns null for Duration N/A banner', () => {
+    assert.equal(matchDurationInStderr('Duration: N/A'), null);
+});
+
 test('matchProgressTimeInStderr extracts progress time', () => {
     assert.equal(matchProgressTimeInStderr('time=00:00:05.00'), 5);
 });

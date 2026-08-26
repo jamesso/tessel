@@ -91,7 +91,27 @@ If you have a WebM with `Duration: N/A` in ffmpeg banner, run the probe helper a
 
 ## Investigation result
 
-_(executor fills in)_
+**Can `NaN` reach `-t` / `buildFfmpegArgs` today?** No.
 
-- Can `NaN` reach `-t` today? (yes/no)
-- Tests added or already present:
+**Trace (post-002):**
+
+1. **`getVideoDurationWithFFmpeg`** (`main.js`): stderr is parsed with `matchDurationInStderr`, which requires `\d{2}:\d{2}:\d{2}\.\d{2}` — `Duration: N/A` does not match and returns `null`. A parsed value is accepted only when `Number.isFinite(parsed) && parsed > 0`. On process `close`, if no finite positive duration was found, the probe **rejects** (`Could not extract duration`); it never resolves `NaN`.
+
+2. **`processDurations`**: after all probes, **`assertAllFiniteDurations`** then **`maxDurationFromMap`** run before **`startConversion`**. Both delegate to **`isFinitePositiveDuration`** (`Number.isFinite(n) && n > 0`). Any `NaN`, `0`, or missing entry throws; the catch path sends **`Could not read video duration`** and does not call `startConversion`.
+
+3. **`buildFfmpegArgs`** (`lib/mosaic.js`): receives `longestDuration` only from the guarded path above. No 10s fallback remains.
+
+**Poison strings:** `parseFloat('N/A')` is `NaN`; it is rejected at probe acceptance, `assertAllFiniteDurations`, and `maxDurationFromMap`.
+
+**Tests added:**
+
+- `isFinitePositiveDuration rejects parseFloat N/A` (`test/duration-probe.test.js`)
+- `matchDurationInStderr returns null for Duration N/A banner` (`test/timecode.test.js`)
+
+**Tests already present (cited, not duplicated):**
+
+- `parseFfmpegClock returns 0 for empty or N/A` (`test/timecode.test.js`)
+- `assertAllFiniteDurations fails on NaN or non-positive` (`test/duration-probe.test.js`)
+- `maxDurationFromMap rejects NaN or non-positive values` (`test/duration-probe.test.js`)
+
+**Optional real file:** not run (no `Duration: N/A` WebM fixture in repo; unit coverage is sufficient per STOP — no full-file decode).

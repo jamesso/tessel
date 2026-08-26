@@ -4,7 +4,12 @@ const {
     matchDurationInStderr,
     maxDurationFromMap,
     assertAllFiniteDurations,
+    isFinitePositiveDuration,
 } = require('../lib/timecode');
+
+test('isFinitePositiveDuration rejects parseFloat N/A', () => {
+    assert.equal(isFinitePositiveDuration(parseFloat('N/A')), false);
+});
 
 test('maxDurationFromMap returns max of finite positive durations', () => {
     assert.equal(maxDurationFromMap({ a: 5, b: 12, c: 8 }), 12);

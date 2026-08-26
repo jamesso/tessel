@@ -30,7 +30,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 020 | Grid layout editor: names, multi-drop | P2 | M | 006 | TODO |
 | 021 | Spike output settings (resolution, audio, fit) | P3 | M | 007, 014 | TODO |
 | 022 | Investigate ffmpeg stdin hang (`-nostdin`) | P3 | S | 002 | TODO |
-| 023 | Investigate `N/A` / NaN durations | P3 | S | 002 | TODO |
+| 023 | Investigate `N/A` / NaN durations | P3 | S | 002 | DONE |
 | 024 | Investigate `-pix_fmt yuv420p` | P3 | S | 001 | TODO |
 | 025 | Investigate progress `time=` parser | P3 | S | 001, 014 | TODO |
 | 026 | Replace `@ffmpeg-installer/ffmpeg` (FFmpeg 4.4) | P3 | L | 001, 002, 016 | TODO |
