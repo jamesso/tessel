@@ -105,12 +105,22 @@ cd tessel
 # Install dependencies
 npm install
 
-# Run in development mode
+# Run in development mode (nodemon + Electron; restarts on file changes)
 npm run dev
 
-# Build for production
+# Run the app once without nodemon (unpackaged Electron — not a distributable build)
 npm start
 ```
+
+For **production / distributable** binaries, use the packager scripts in [Building Releases](#building-releases) below (`npm run package-mac`, `package-win`, or `package-linux`).
+
+### Cutting a GitHub Release
+
+1. Bump `"version"` in `package.json` (the About page still shows `1.4.0` until it reads the app version).
+2. Push the commit to `master` or `main`. CI creates a GitHub Release when the version changes — releases are published from **push**, not from pull requests.
+3. CI builds macOS, Linux, and Windows assets and uploads them to the [Releases page](https://github.com/jamesso/tessel/releases).
+
+Local `npm run package-*` commands produce **unsigned** binaries in `release-builds/` only (gitignored). Use them to smoke-test packaging; they are not uploaded automatically.
 
 ### Building Releases
 
@@ -129,12 +139,16 @@ npm run package-linux
 
 ```
 tessel/
+├── .github/
+│   └── workflows/         # CI: build and GitHub Release on version bump
 ├── app/                    # Frontend application
 │   ├── index.html         # Main UI
 │   ├── about.html         # About page
 │   ├── css/               # Stylesheets
 │   └── js/                # Frontend JavaScript
-├── assets/                # Application icons
+├── assets/                # Icons, logos, and screenshots
+├── scripts/
+│   └── githooks/          # commit-msg hook (strips AI co-author trailers)
 ├── main.js                # Electron main process
 ├── preload.js             # Preload script for security
 └── package.json           # Dependencies and scripts
