@@ -76,7 +76,10 @@ Using extracted `buildFfmpegArgs` if possible, or a minimal filter `color=black:
 
 ## Investigation result
 
-_(executor fills in)_
-
-- Measured pix_fmt:
-- Flag added (yes/no):
+- **OS**: macOS Darwin 26.5.1 (arm64)
+- **FFmpeg**: bundled `@ffmpeg-installer/ffmpeg` 4.4 (`node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg`)
+- **Experiment**: 1s lavfi `color=c=black:s=1280x720:d=1` → libx264 with `-preset veryfast -crf 23 -r 25 -an -vsync cfr` (matching `buildFfmpegArgs` encoder flags)
+- **Measured pix_fmt**: `yuv420p` (libx264 profile High, 4:2:0, 8-bit — already the default for this color source)
+- **Flag added**: yes — pinned `-pix_fmt yuv420p` after `-crf 23` so future filter/color sources cannot silently emit yuv444/yuv422
+- **FFmpeg 4.4 with `-pix_fmt yuv420p`**: succeeds (no STOP)
+- **Players**: VLC 3.x plays the probe file (Video Toolbox h264 decode, exit 0). QuickTime Player available on macOS (not manually exercised; output is standard H.264 yuv420p)
