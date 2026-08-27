@@ -22,6 +22,18 @@ test('accepts empty MIME and a .mov name', () => {
     assert.equal(isProbablyVideoFile({ type: '', name: 'clip.mov' }), true);
 });
 
+test('accepts application/octet-stream when the name ends in .mp4', () => {
+    assert.equal(isProbablyVideoFile({ type: 'application/octet-stream', name: 'clip.mp4' }), true);
+});
+
+test('accepts application/octet-stream when the name ends in .MOV', () => {
+    assert.equal(isProbablyVideoFile({ type: 'application/octet-stream', name: 'clip.MOV' }), true);
+});
+
+test('rejects application/octet-stream when the name is not a video extension', () => {
+    assert.equal(isProbablyVideoFile({ type: 'application/octet-stream', name: 'notes.txt' }), false);
+});
+
 test('rejects notes.txt', () => {
     assert.equal(isProbablyVideoFile({ type: '', name: 'notes.txt' }), false);
 });
@@ -48,6 +60,14 @@ test('renderer media-accept script exports the same helper as lib', () => {
     assert.equal(
         renderer.isProbablyVideoFile({ type: 'image/jpeg', name: 'foo.mp4' }),
         isProbablyVideoFile({ type: 'image/jpeg', name: 'foo.mp4' })
+    );
+    assert.equal(
+        renderer.isProbablyVideoFile({ type: 'application/octet-stream', name: 'clip.mp4' }),
+        isProbablyVideoFile({ type: 'application/octet-stream', name: 'clip.mp4' })
+    );
+    assert.equal(
+        renderer.isProbablyVideoFile({ type: 'application/octet-stream', name: 'notes.txt' }),
+        isProbablyVideoFile({ type: 'application/octet-stream', name: 'notes.txt' })
     );
 });
 

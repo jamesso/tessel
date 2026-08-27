@@ -142,7 +142,7 @@ test('encode failure sends Conversion failed without video:done', async () => {
     await waitUntil(() => encodes.length === 1);
     encodes[0].emit('close', 1);
 
-    await waitUntil(() => sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Conversion failed'));
+    await waitUntil(() => sent.some((s) => s.channel === 'video:error' && /Conversion failed \(exit /.test(s.args[0])));
 
     assert.ok(!sent.some((s) => s.channel === 'video:done'));
 });

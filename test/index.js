@@ -4,6 +4,7 @@ require('./output-settings.test.js');
 require('./timecode.test.js');
 require('./duration-probe.test.js');
 require('./ffmpeg-integration.test.js');
+require('./ffmpeg-error.test.js');
 require('./media-accept.test.js');
 require('./ipc-send.test.js');
 require('./navigation-guard.test.js');
