@@ -178,7 +178,11 @@ jobs:
         
         ### Features
         - 2×2 and 3×3 mosaics with clip names and multi-file drop
-        - 720p or 1080p, mute or first-clip audio, letterbox or crop
+        - 720p or 1080p, mute or first occupied cell’s audio (grid order), letterbox or crop
+        - Duration: full length (pad to longest) or cap at 5, 15, 30, or 60 seconds from the start
+        - Session restore: output settings, last save folder, and occupied cells on launch when files still exist
+        - Rearrange clips: drag filled cell onto another to swap, or onto empty to move
+        - Cell previews: muted first-frame thumbnail; filenames stay visible
         - Cancel an in-progress convert; grid stays filled after success
         - MP4, MOV, M4V, WebM, AVI, and MKV inputs
         
