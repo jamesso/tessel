@@ -68,7 +68,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 054 | One allowlist for duration, resolution, fit, and audio | P3 | S | — (before 059) | TODO |
 | 055 | Cap encode and probe stderr buffers | P2 | S | 046 | TODO |
 | 056 | Investigate cover-art `Duration:` winning the probe | P3 | S | — | TODO |
-| 057 | Investigate packaged `file://` cell previews | P3 | S | — | TODO |
+| 057 | Investigate packaged `file://` cell previews | P3 | S | — | DONE |
 | 058 | Investigate 4K × 9 HTML5 posters while converting | P3 | S | — | TODO |
 | 059 | Let the user pick which occupied cell supplies audio | P3 | M | 054 | TODO |
 | 060 | Copy a clip onto an empty cell | P3 | S | 049, 053 (preferred) | TODO |
