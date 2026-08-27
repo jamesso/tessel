@@ -109,7 +109,7 @@ cd tessel
 # Install dependencies (also runs prepare → sets git hooksPath to scripts/githooks)
 npm install
 
-# Run in development mode (nodemon + Electron; restarts on file changes)
+# Run in development mode (nodemon + Electron; restarts on .js, .json, .html, and .css changes; ignores test/). Developer → Reload is also available when running unpackaged.
 npm run dev
 
 # Run the app once without nodemon (unpackaged Electron — not a distributable build)
