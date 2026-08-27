@@ -118,11 +118,11 @@ Verification: `npm test` → exit 0.
 
 ## Done criteria
 
-- [ ] `## Investigation result` filled
-- [ ] Either parser tests for the captured banner **or** an explicit no-repro / no-ship
-- [ ] Probe still does not decode whole files (002)
-- [ ] `npm test` exits 0
-- [ ] `plans/README.md` status row for 056 set to DONE (or DONE — not shipped)
+- [x] `## Investigation result` filled
+- [x] Either parser tests for the captured banner **or** an explicit no-repro / no-ship
+- [x] Probe still does not decode whole files (002)
+- [x] `npm test` exits 0
+- [x] `plans/README.md` status row for 056 set to DONE (or DONE — not shipped)
 
 ## STOP conditions
 
@@ -132,7 +132,44 @@ Verification: `npm test` → exit 0.
 
 ## Investigation result
 
-_(executor fills)_
+**Verdict:** Cover-art `Duration:` winning the probe is **not reproducible** with bundled **ffmpeg 6.0** (`ffmpeg-static` 5.3.0). **No parser or session change.** First-match `matchDurationInStderr` stays.
+
+**Drift check:** `git diff --stat a7bd825..HEAD` shows only `lib/ffmpeg-session.js` changed (045 probe-kill); `lib/timecode.js` and `test/timecode.test.js` match the plan excerpt.
+
+### Sample (generated, no copyrighted stills)
+
+1. 2s H.264 lavfi color clip (`320×240`, 25 fps).
+2. Single-frame `64×64` jpeg from lavfi (`-update 1 -frames:v 1`).
+3. Muxed MP4: `-map 0:v -map 1:v -c:v:0 copy -c:v:1 mjpeg -disposition:v:1 attached_pic`.
+
+Also tried: cover mapped first / cover as stream 0, MKV `-attach`, MOV, MP3 id3 attached pic — same pattern.
+
+### Production probe (`-nostdin -protocol_whitelist file,pipe -hide_banner -i <file>`)
+
+**Every `Duration:` line (in order)** on the primary MP4 sample:
+
+```
+Duration: 00:00:02.00, start: 0.000000, bitrate: 13 kb/s
+```
+
+One line only — container duration. Streams listed after it:
+
+- `Stream #0:0`: Video: h264 … (default)
+- `Stream #0:1`: Video: mjpeg … **(attached pic)**
+
+`matchDurationInStderr` → **2** seconds. Simulated probe (accumulate stderr, first-match) wall time **~13 ms**; no decode.
+
+### Dual-`Duration:` note
+
+Probing **two separate `-i` inputs** (short mjpeg mov + long mp4) prints two `Duration:` lines (`00:00:00.04` then `00:00:02.00`), but Tessel probes **one file path** per job — not applicable.
+
+### Decision
+
+First `Duration:` is the real video length on the attached-pic MP4. **Leave parser and kill-on-first-match** (045). Do not ship last-match or sub-0.5s heuristics without a reproducing single-file banner.
+
+**Tests:** `npm test` → 162 pass, 0 fail. No new tests (no captured dual-Duration banner to assert against).
+
+**002 compliance:** `-i`-only probe exits after banner + “At least one output file must be specified”; no `-f null -` full decode.
 
 ## Maintenance notes
 
