@@ -7,8 +7,10 @@ const {
     ENCODE_SECONDS,
     AUDIO,
     FIT,
+    PAD_MODES,
     sizeValue,
     resolveAudio,
+    resolvePadMode,
     normalizeAudio,
 } = require('../lib/output-allowlist');
 
@@ -65,6 +67,25 @@ test('normalizeAudio falls back when the chosen slot is empty', () => {
 test('output-fit options match FIT', () => {
     const html = read('app/index.html');
     assert.deepEqual(optionValues(html, 'output-fit'), FIT);
+});
+
+test('output-pad options match PAD_MODES', () => {
+    const html = read('app/index.html');
+    assert.deepEqual(optionValues(html, 'output-pad'), PAD_MODES);
+});
+
+test('renderer reads and persists padMode from output-pad', () => {
+    const js = read('app/js/index.js');
+    assert.match(js, /padMode: document\.getElementById\('output-pad'\)\.value/);
+    assert.match(js, /getElementById\('output-pad'\)\.value = prefs\.padMode === 'freeze' \? 'freeze' : 'black'/);
+    assert.match(js, /'output-pad'/);
+});
+
+test('resolvePadMode keeps freeze and falls back to black', () => {
+    assert.equal(resolvePadMode('freeze'), 'freeze');
+    assert.equal(resolvePadMode('black'), 'black');
+    assert.equal(resolvePadMode('loop'), 'black');
+    assert.equal(resolvePadMode(undefined), 'black');
 });
 
 test('output-duration options match longest plus ENCODE_SECONDS', () => {

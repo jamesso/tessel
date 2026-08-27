@@ -163,7 +163,8 @@ test('unequal durations: tpad for shorter clip, copy when within 0.1s of max', (
     const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
 
     const filterShortFirst = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
-    assert.match(filterShortFirst, /tpad/);
+    assert.match(filterShortFirst, /tpad=stop_mode=add:stop_duration=5:color=black/);
+    assert.doesNotMatch(filterShortFirst, /stop_mode=clone/);
 
     const equalSlotPaths = [longPath, longPath, null, null];
     const equalDurations = { [longPath]: 9.95 };
@@ -288,8 +289,41 @@ test('tpad still used when a clip is shorter than the encode duration cap', () =
     const { blockWidth, blockHeight } = gridMetrics('2x2');
     const filterComplex = buildFilterComplex(videoInfo, encodeDuration, blockWidth, blockHeight);
 
-    assert.match(filterComplex, /tpad/);
-    assert.match(filterComplex, /stop_duration=3/);
+    assert.match(filterComplex, /tpad=stop_mode=add:stop_duration=3:color=black/);
+});
+
+test('freeze pad mode uses tpad clone and omits color=black on that tpad', () => {
+    const { blockWidth, blockHeight } = gridMetrics('2x2');
+    const longestDuration = 10;
+    const slotPaths = ['/short.mp4', '/long.mp4', null, null];
+    const videoInfo = buildVideoInfo(slotPaths, { '/short.mp4': 5, '/long.mp4': 10 }, longestDuration);
+    const filterComplex = buildFilterComplex(
+        videoInfo,
+        longestDuration,
+        blockWidth,
+        blockHeight,
+        { padMode: 'freeze' },
+    );
+
+    assert.match(filterComplex, /tpad=stop_mode=clone:stop_duration=5/);
+    assert.doesNotMatch(filterComplex, /tpad=stop_mode=add/);
+    assert.doesNotMatch(filterComplex, /tpad=[^[]*color=black/);
+});
+
+test('invalid padMode still uses black tpad', () => {
+    const { blockWidth, blockHeight } = gridMetrics('2x2');
+    const longestDuration = 10;
+    const slotPaths = ['/short.mp4', '/long.mp4', null, null];
+    const videoInfo = buildVideoInfo(slotPaths, { '/short.mp4': 5, '/long.mp4': 10 }, longestDuration);
+    const filterComplex = buildFilterComplex(
+        videoInfo,
+        longestDuration,
+        blockWidth,
+        blockHeight,
+        { padMode: 'loop' },
+    );
+
+    assert.match(filterComplex, /tpad=stop_mode=add:stop_duration=5:color=black/);
 });
 
 test('buildFfmpegArgs throws when all slots are black', () => {

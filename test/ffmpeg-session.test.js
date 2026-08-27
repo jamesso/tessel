@@ -618,6 +618,32 @@ test('invalid durationMode or seconds keeps pad-to-longest -t', async () => {
     assert.equal(encodeArgs[encodeArgs.indexOf('-t') + 1], '10');
 });
 
+test('padMode freeze reaches the encode filter graph', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const spawnCalls = [];
+    const wrappedSpawn = (...args) => {
+        spawnCalls.push(args);
+        return spawn(...args);
+    };
+    const { session } = createSession(wrappedSpawn);
+
+    session.convertVideo(defaultConvertPayload({
+        vidPath1: '/short.mp4',
+        vidPath2: '/long.mp4',
+        padMode: 'freeze',
+    }));
+
+    await waitUntil(() => probes.length === 2);
+    probes[0].stderr.emit('data', 'Duration: 00:00:02.00\n');
+    probes[1].stderr.emit('data', 'Duration: 00:00:05.00\n');
+    await waitUntil(() => encodes.length === 1);
+
+    const encodeArgs = spawnCalls.find((args) => !args[1].includes('-hide_banner'))[1];
+    const filterComplex = encodeArgs[encodeArgs.indexOf('-filter_complex') + 1];
+    assert.match(String(filterComplex), /tpad=stop_mode=clone:stop_duration=3/);
+    assert.equal(String(filterComplex).includes('tpad=stop_mode=add'), false);
+});
+
 test('four unique paths never exceed three concurrent probes', async () => {
     const { spawn, probes, encodes, getMaxLiveProbes } = createConcurrencySpawnFake();
     const { session, sent } = createSession(spawn);

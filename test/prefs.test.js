@@ -23,6 +23,7 @@ const defaults = {
     height: 720,
     audio: 'none',
     fit: 'letterbox',
+    padMode: 'black',
     durationMode: 'longest',
     lastSaveDir: null,
     paths: [null, null, null, null, null, null, null, null, null],
@@ -43,6 +44,7 @@ test('normalizePrefs fills defaults for missing and invalid fields', () => {
             height: 480,
             audio: 'mix',
             fit: 'stretch',
+            padMode: 'loop',
             durationMode: 'shortest',
             seconds: 7,
             lastSaveDir: 12,
@@ -50,6 +52,12 @@ test('normalizePrefs fills defaults for missing and invalid fields', () => {
         }),
         defaults,
     );
+});
+
+test('padMode freeze is preserved; invalid padMode falls back to black', () => {
+    assert.equal(normalizePrefs({ padMode: 'freeze' }).padMode, 'freeze');
+    assert.equal(normalizePrefs({ padMode: 'loop' }).padMode, 'black');
+    assert.equal(normalizePrefs({}).padMode, 'black');
 });
 
 test('durationMode seconds with allowlisted seconds is preserved', () => {
@@ -79,6 +87,7 @@ test('1080p crop first and lastSaveDir are preserved', () => {
         height: 1080,
         audio: 'first',
         fit: 'crop',
+        padMode: 'freeze',
         durationMode: 'seconds',
         seconds: 30,
         lastSaveDir: '/Users/me/Exports',
@@ -90,6 +99,7 @@ test('1080p crop first and lastSaveDir are preserved', () => {
     assert.equal(got.height, 1080);
     assert.equal(got.audio, 'first');
     assert.equal(got.fit, 'crop');
+    assert.equal(got.padMode, 'freeze');
     assert.equal(got.durationMode, 'seconds');
     assert.equal(got.seconds, 30);
     assert.equal(got.lastSaveDir, '/Users/me/Exports');
@@ -224,6 +234,7 @@ test('serializePrefs round-trips through parsePrefsJson', () => {
         height: 1080,
         audio: 'first',
         fit: 'crop',
+        padMode: 'freeze',
         durationMode: 'seconds',
         seconds: 15,
         lastSaveDir: '/exports',

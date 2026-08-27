@@ -17,6 +17,7 @@
 - **Depends on**: none (041 duration cap already shipped)
 - **Category**: direction
 - **Planned at**: commit `a7bd825`, 2026-08-27
+- **Result**: DONE (shipped freeze pad; default still black)
 
 ## Why this matters
 
@@ -110,11 +111,11 @@ Verification: `npm test` → exit 0.
 
 ## Done criteria
 
-- [ ] `## Spike result` filled
-- [ ] Either one extra pad mode shipped with tests **or** explicit no-ship
-- [ ] Default still black pad-to-encode-duration
-- [ ] `npm test` exits 0
-- [ ] `plans/README.md` 062 DONE
+- [x] `## Spike result` filled
+- [x] Either one extra pad mode shipped with tests **or** explicit no-ship
+- [x] Default still black pad-to-encode-duration
+- [x] `npm test` exits 0
+- [x] `plans/README.md` 062 DONE
 
 ## STOP conditions
 
@@ -124,7 +125,25 @@ Verification: `npm test` → exit 0.
 
 ## Spike result
 
-_(executor fills)_
+Bundled **FFmpeg 7.1** (`vendor/ffmpeg/ffmpeg`). `ffmpeg -h filter=tpad`:
+
+```
+stop_mode  <int>  set the mode of added frames to end (from 0 to 1) (default add)
+  add      0      add solid-color frames
+  clone    1      clone first/last frame
+stop_duration  <duration>  set the duration to pad input (default 0)
+color      <color>  set the color of the added frames (default "black")
+```
+
+Two lavfi clips: **2 s** red + sine 440 Hz, **5 s** green + sine 880 Hz, 25 fps. 2×2 mosaic (short + long). Audio `first` (short), `{slot:0}` (short), `{slot:1}` (long). `-t 5` + `apad`.
+
+| Mode | Filter | ffmpeg exit | Video / audio vs `-t` |
+|------|--------|-------------|------------------------|
+| black (today) | `tpad=stop_mode=add:stop_duration=3:color=black` | 0 | container 5.02 s, video 5.04 s / **125 frames**, audio 5.03 s |
+| freeze | `tpad=stop_mode=clone:stop_duration=3` | 0 | same: 5.02 / 5.04 / 5.03 s, 125 frames |
+| loop | `[scaledN]loop=loop=-1:size=50,setpts,trim=duration=5` | **hung** (killed after ~90 s; `-t 5` did not finish) | no-ship |
+
+**Ship freeze only.** Default remains black `stop_mode=add`. Loop needs a frame-count `size=` and an infinite `loop=-1` that did not terminate with this graph; no `aloop` / `amix`. Footer **Pad**: Black | Freeze. Prefs `padMode: 'black' | 'freeze'`.
 
 ## Maintenance notes
 

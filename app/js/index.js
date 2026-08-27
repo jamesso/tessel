@@ -152,6 +152,7 @@ function getOutputSettings() {
         height: Number(resolution[1]),
         audio: audioFromSelectValue(document.getElementById('output-audio').value),
         fit: document.getElementById('output-fit').value,
+        padMode: document.getElementById('output-pad').value,
         ...getDurationSettings(),
     }
 }
@@ -215,6 +216,7 @@ function persistPrefs() {
 function applyPrefs(prefs, options) {
     document.getElementById('output-resolution').value = prefs.width + 'x' + prefs.height
     document.getElementById('output-fit').value = prefs.fit
+    document.getElementById('output-pad').value = prefs.padMode === 'freeze' ? 'freeze' : 'black'
     const durationSelect = document.getElementById('output-duration')
     if (prefs.durationMode === 'seconds' && (prefs.seconds === 5 || prefs.seconds === 15 || prefs.seconds === 30 || prefs.seconds === 60)) {
         durationSelect.value = String(prefs.seconds)
@@ -691,7 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     })
 
-    const settingIds = ['output-resolution', 'output-audio', 'output-fit', 'output-duration']
+    const settingIds = ['output-resolution', 'output-audio', 'output-fit', 'output-duration', 'output-pad']
     settingIds.forEach((id) => {
         document.getElementById(id).addEventListener('change', persistPrefs)
     })

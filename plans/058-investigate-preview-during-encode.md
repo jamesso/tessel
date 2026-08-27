@@ -16,6 +16,7 @@
 - **Depends on**: none
 - **Category**: tests
 - **Planned at**: commit `a7bd825`, 2026-08-27
+- **Result**: DONE — not shipped (no hide during encode)
 
 ## Why this matters
 
@@ -89,11 +90,11 @@ Verification: `npm test` → exit 0.
 
 ## Done criteria
 
-- [ ] `## Investigation result` filled
-- [ ] Either no change **or** hide/show around convert overlay
-- [ ] Grid paths still persist across convert (019)
-- [ ] `npm test` exits 0
-- [ ] `plans/README.md` 058 DONE
+- [x] `## Investigation result` filled
+- [x] Either no change **or** hide/show around convert overlay
+- [x] Grid paths still persist across convert (019)
+- [x] `npm test` exits 0
+- [x] `plans/README.md` 058 DONE
 
 ## STOP conditions
 
@@ -102,7 +103,13 @@ Verification: `npm test` → exit 0.
 
 ## Investigation result
 
-_(executor fills)_
+**No production hide.** 4K posters stay cheap enough during encode that unloading `.cell-preview` is not justified.
+
+Generated a **3840×2160** H.264 clip (`testsrc2`, 25 fps, **0.08 s / 2 frames**, **204 KB** on disk). A paused HTML5 poster of that file is one decoded IDR (~12 MB of 4:2:0 YUV), not a live decoder. Nine cells would hold ~110 MB of GPU textures after `loadeddata` / `seeked`; `pausePreviewAtFirstFrame` then pauses and does not keep reading frames. Convert already overlays the 450×600 window (`overlay.style.display = 'block'` at `app/js/index.js` convert send) without calling `hideCellPreview` — that helper is only used when a slot is cleared. libx264 runs in the **main** process; the renderer is not compositing 4K playback.
+
+Plan 043 already measured **~0% CPU** with nine paused posters after first-frame seek. This session did not drive a 3×3 of camera 4K plus overlay in a live Electron window (Jean Cursor sessions for 058 hung with empty worktrees). There is **no stutter evidence**, so Step 3 (hide on convert, restore on `resetConvertUi`) is not taken. Idle 3×3 posters stay (043 STOP). Grid paths are untouched.
+
+**Decision:** document only. Commit message: `Document that 4K cell posters stay cheap during encode.`
 
 ## Maintenance notes
 

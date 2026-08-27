@@ -144,7 +144,7 @@ test('one-cell mosaic graph encodes with bundled ffmpeg', (t) => {
 
 test('slot-1 audio mosaic maps 1:a? and keeps apad plus -t', (t) => {
     if (!ffmpegBinary) {
-        t.skip('ffmpeg-static binary not available on this platform');
+        t.skip('bundled ffmpeg binary not available on this platform');
         return;
     }
 
@@ -206,6 +206,78 @@ test('slot-1 audio mosaic maps 1:a? and keeps apad plus -t', (t) => {
     } finally {
         fs.unlink(leftPath, () => {});
         fs.unlink(rightPath, () => {});
+        fs.unlink(outPath, () => {});
+    }
+});
+
+test('freeze tpad mosaic encodes aligned A/V with bundled ffmpeg', (t) => {
+    if (!ffmpegBinary) {
+        t.skip('bundled ffmpeg binary not available on this platform');
+        return;
+    }
+
+    function makeClip(color, freq, duration, dest) {
+        return spawnSync(
+            ffmpegBinary,
+            [
+                '-nostdin',
+                '-f', 'lavfi',
+                '-i', `color=c=${color}:s=64x64:d=${duration}`,
+                '-f', 'lavfi',
+                '-i', `sine=frequency=${freq}:duration=${duration}`,
+                '-y',
+                '-vcodec', 'libx264',
+                '-pix_fmt', 'yuv420p',
+                '-r', '25',
+                '-shortest',
+                dest,
+            ],
+            { encoding: 'utf8' },
+        );
+    }
+
+    const stamp = Date.now();
+    const shortPath = path.join(os.tmpdir(), `tessel-freeze-short-${stamp}.mp4`);
+    const longPath = path.join(os.tmpdir(), `tessel-freeze-long-${stamp}.mp4`);
+    const outPath = path.join(os.tmpdir(), `tessel-freeze-out-${stamp}.mp4`);
+
+    try {
+        const shortClip = makeClip('red', 440, 0.4, shortPath);
+        assert.equal(shortClip.status, 0, shortClip.stderr);
+        const longClip = makeClip('green', 880, 1.0, longPath);
+        assert.equal(longClip.status, 0, longClip.stderr);
+
+        const longestDuration = 1;
+        const slotPaths = [shortPath, longPath, null, null];
+        const { blockWidth, blockHeight } = gridMetrics('2x2');
+        const videoInfo = buildVideoInfo(
+            slotPaths,
+            { [shortPath]: 0.4, [longPath]: 1 },
+            longestDuration,
+        );
+        const filterComplex = buildFilterComplex(
+            videoInfo,
+            longestDuration,
+            blockWidth,
+            blockHeight,
+            { padMode: 'freeze' },
+        );
+        assert.match(filterComplex, /tpad=stop_mode=clone:stop_duration=0\.6/);
+        const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, outPath, { audio: 'first' });
+        assert.ok(args.some((a) => String(a).includes('apad')));
+        assert.equal(args[args.indexOf('-t') + 1], '1');
+
+        const result = spawnSync(ffmpegBinary, args, { encoding: 'utf8' });
+        assert.equal(result.status, 0, result.stderr);
+        assert.ok(fs.statSync(outPath).size > 0);
+
+        const probe = spawnSync(ffmpegBinary, ['-nostdin', '-i', outPath], { encoding: 'utf8' });
+        const info = `${probe.stdout}\n${probe.stderr}`;
+        assert.match(info, /Duration: 00:00:01\./);
+        assert.match(info, /Audio:/);
+    } finally {
+        fs.unlink(shortPath, () => {});
+        fs.unlink(longPath, () => {});
         fs.unlink(outPath, () => {});
     }
 });
