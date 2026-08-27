@@ -187,6 +187,44 @@ body .copy {
 .grid-3x3 .file-label {
     font-size: 10px;
 }
+.cell-preview {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    background-color: #1a202c;
+    pointer-events: none;
+    z-index: 1;
+}
+.cell-preview.hidden {
+    display: none;
+}
+.dropzone.file .cell-preview:not(.hidden) {
+    display: block;
+}
+.dropzone.empty .cell-preview {
+    display: none;
+}
+.dropzone.file:has(.cell-preview:not(.hidden)) {
+    padding: 0;
+    gap: 0;
+}
+.dropzone.file:has(.cell-preview:not(.hidden)) .file-icon {
+    display: none;
+}
+.dropzone.file:has(.cell-preview:not(.hidden)) .file-label:not(.hidden) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    background-color: rgba(26, 32, 45, 0.88);
+    padding: 4px 6px 5px;
+    max-width: none;
+}
 
 .close-btn {
     position: absolute;

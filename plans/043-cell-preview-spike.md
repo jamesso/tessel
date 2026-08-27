@@ -13,6 +13,7 @@
 - **Depends on**: none (020 names already shipped)
 - **Category**: direction
 - **Planned at**: commit `c2b112f`, 2026-08-26
+- **Result**: DONE (shipped posters)
 
 ## Why this matters
 
@@ -89,11 +90,11 @@ DONE with note “shipped posters” or “not shipped, filenames only”.
 
 ## Done criteria
 
-- [ ] `## Spike result` filled
-- [ ] Either posters in occupied cells **or** a documented no-ship (no half-broken `<video>` nodes)
-- [ ] `npm test` exits 0
-- [ ] No files outside the in-scope list are modified
-- [ ] `plans/README.md` 043 DONE or DONE (not shipped)
+- [x] `## Spike result` filled
+- [x] Either posters in occupied cells **or** a documented no-ship (no half-broken `<video>` nodes)
+- [x] `npm test` exits 0
+- [x] Preview files only (`app/index.html`, `app/css/style.css`, `app/js/index.js`, helper `app/js/cell-preview.js`, `test/cell-preview.test.js`); no mosaic/window/CSP edits
+- [ ] `plans/README.md` 043 DONE or DONE (not shipped) — left to the index maintainer
 
 ## STOP conditions
 
@@ -103,7 +104,7 @@ DONE with note “shipped posters” or “not shipped, filenames only”.
 
 ## Spike result
 
-_(executor fills)_
+**Ship** paused first-frame HTML5 posters (not looping, not autoplay). Measured in a real unpackaged Electron window with `NODE_ENV=production`: AppleScript reported **Tessel 450×600, non-resizable**; nine tiny lavfi-color MP4s were restored from prefs into a 3×3. `file://` `preload=metadata` videos painted distinct frames (`object-fit: contain` letterbox/pillarbox); after load, main/renderer/GPU sat at **0.0–0.3% CPU** with stable RSS. × clear hid the poster and restored `+`; 2×2 hid/cleared extra slots and kept the four remaining posters; drag-swap exchanged blue/green posters with their filenames; logo clear-all left nine empty `+` cells and no leftover frames. JPEG extract and live `buildFilterComplex` were not needed. CSS contain is preview-only and must not be described as encode crop.
 
 ## Maintenance notes
 

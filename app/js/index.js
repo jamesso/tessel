@@ -175,6 +175,7 @@ function setSlotOccupied(dropzone, filePath) {
     const fileIcon = dropzone.querySelector('.file-icon')
     const closeBtn = dropzone.querySelector('.close-btn')
     const label = dropzone.querySelector('.file-label')
+    const preview = dropzone.querySelector('.cell-preview')
     if (emptyIcon) emptyIcon.classList.add('hidden')
     if (fileIcon) fileIcon.classList.remove('hidden')
     if (closeBtn) closeBtn.classList.remove('hidden')
@@ -183,6 +184,9 @@ function setSlotOccupied(dropzone, filePath) {
         label.textContent = name
         label.title = name
         label.classList.remove('hidden')
+    }
+    if (typeof window.showCellPreview === 'function') {
+        window.showCellPreview(preview, filePath)
     }
     dropzone.draggable = true
     persistPrefs()
@@ -197,6 +201,7 @@ function clearSlot(dropzone, vidNum) {
     const fileIcon = dropzone.querySelector('.file-icon')
     const closeBtn = dropzone.querySelector('.close-btn')
     const label = dropzone.querySelector('.file-label')
+    const preview = dropzone.querySelector('.cell-preview')
     if (emptyIcon) emptyIcon.classList.remove('hidden')
     if (fileIcon) fileIcon.classList.add('hidden')
     if (closeBtn) closeBtn.classList.add('hidden')
@@ -204,6 +209,9 @@ function clearSlot(dropzone, vidNum) {
         label.textContent = ''
         label.removeAttribute('title')
         label.classList.add('hidden')
+    }
+    if (typeof window.hideCellPreview === 'function') {
+        window.hideCellPreview(preview)
     }
     dropzone.draggable = false
     dropzone.classList.remove('dragging')
@@ -545,6 +553,12 @@ function clearVideo(videoNum) {
 
 // Add event listeners for close buttons
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.cell-preview').forEach(function (video) {
+        if (typeof window.bindCellPreview === 'function') {
+            window.bindCellPreview(video)
+        }
+    })
+
     const closeButtons = document.querySelectorAll('.close-btn')
     closeButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
