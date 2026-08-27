@@ -78,6 +78,62 @@ function readStoredPrefs() {
     }
 }
 
+function whenRendererReady() {
+    if (!canSend(mainWindow)) {
+        return Promise.reject(new Error('Window unavailable'))
+    }
+    if (!mainWindow.webContents.isLoading()) {
+        return Promise.resolve()
+    }
+    return new Promise((resolve) => {
+        mainWindow.webContents.once('did-finish-load', resolve)
+    })
+}
+
+async function exportLayout() {
+    await whenRendererReady()
+    mainWindow.webContents.send('prefs:collect')
+}
+
+async function importLayout() {
+    if (!canSend(mainWindow)) {
+        return
+    }
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+        title: 'Import layout',
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+        properties: ['openFile'],
+    })
+    if (canceled || !filePaths || !filePaths[0]) {
+        return
+    }
+    let text
+    try {
+        text = fs.readFileSync(filePaths[0], 'utf8')
+    } catch {
+        dialog.showErrorBox('Import layout', 'Could not read that file.')
+        return
+    }
+    let raw
+    try {
+        raw = JSON.parse(text)
+    } catch {
+        dialog.showErrorBox('Import layout', 'That file is not valid JSON. The current grid was not changed.')
+        return
+    }
+    if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+        dialog.showErrorBox('Import layout', 'That file is not valid JSON. The current grid was not changed.')
+        return
+    }
+    const prefs = filterMissingPaths(parsePrefsJson(text), (p) => fs.existsSync(p))
+    await whenRendererReady()
+    sendToRenderer('prefs:imported', prefs)
+    await dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        message: 'Clip paths are absolute. Files that are not on this computer are left empty.',
+    })
+}
+
 const ffmpegSession = createFfmpegSession({
     spawn,
     ffmpegBinary,
@@ -135,6 +191,24 @@ function setupIPC() {
     ipcMain.handle('prefs:save', (event, raw) => {
         fs.writeFileSync(prefsFilePath(), serializePrefs(raw), 'utf8')
         return true
+    })
+
+    ipcMain.handle('prefs:collect', async (event, payload) => {
+        const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+            title: 'Export layout',
+            defaultPath: 'tessel-layout.json',
+            filters: [{ name: 'JSON', extensions: ['json'] }],
+        })
+        if (canceled || !filePath) {
+            return false
+        }
+        try {
+            fs.writeFileSync(filePath, serializePrefs(payload), 'utf8')
+            return true
+        } catch {
+            dialog.showErrorBox('Export layout', 'Could not write that file.')
+            return false
+        }
     })
 
     ipcMain.handle('app:getVersion', () => app.getVersion())
@@ -221,7 +295,29 @@ const menu = [
         ]
     : []),
     {
-        role: 'fileMenu'
+        label: 'File',
+        submenu: [
+            {
+                label: 'Export layout…',
+                click: () => {
+                    exportLayout().catch((err) => {
+                        debugLog('exportLayout failed', { error: String(err) })
+                        dialog.showErrorBox('Export layout', 'Could not export the layout.')
+                    })
+                },
+            },
+            {
+                label: 'Import layout…',
+                click: () => {
+                    importLayout().catch((err) => {
+                        debugLog('importLayout failed', { error: String(err) })
+                        dialog.showErrorBox('Import layout', 'Could not import the layout.')
+                    })
+                },
+            },
+            { type: 'separator' },
+            isMac ? { role: 'close' } : { role: 'quit' },
+        ],
     },
     ...(isDev 
         ? [

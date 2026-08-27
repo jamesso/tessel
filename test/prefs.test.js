@@ -1,5 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('fs');
 const path = require('path');
 const {
     defaultPrefs,
@@ -10,6 +11,10 @@ const {
     resolveSaveDefaultPath,
     shouldRestoreGridAndPaths,
 } = require('../lib/prefs');
+
+function readRepo(rel) {
+    return fs.readFileSync(path.join(__dirname, '..', rel), 'utf8');
+}
 
 const defaults = {
     version: 1,
@@ -169,6 +174,55 @@ test('serializePrefs writes pretty JSON of normalized prefs', () => {
     assert.equal(parsed.durationMode, 'longest');
     assert.equal(parsed.width, 1280);
     assert.equal(parsed.extra, undefined);
+});
+
+test('serializePrefs round-trips through parsePrefsJson', () => {
+    const raw = {
+        gridType: '3x3',
+        width: 1920,
+        height: 1080,
+        audio: 'first',
+        fit: 'crop',
+        durationMode: 'seconds',
+        seconds: 15,
+        lastSaveDir: '/exports',
+        paths: ['/a.mp4', null, '/c.mp4'],
+    };
+    assert.deepEqual(parsePrefsJson(serializePrefs(raw)), normalizePrefs(raw));
+});
+
+test('filterMissingPaths after parsePrefsJson nulls missing import paths', () => {
+    const json = serializePrefs({
+        gridType: '3x3',
+        paths: ['/keep.mp4', '/gone.mp4'],
+    });
+    const imported = filterMissingPaths(parsePrefsJson(json), (p) => p === '/keep.mp4');
+    assert.equal(imported.paths[0], '/keep.mp4');
+    assert.equal(imported.paths[1], null);
+});
+
+test('File menu export collects renderer prefs and writes serializePrefs JSON', () => {
+    const main = readRepo('main.js');
+    const preload = readRepo('preload.js');
+    assert.match(main, /Export layout/);
+    assert.match(main, /prefs:collect/);
+    assert.match(main, /tessel-layout\.json/);
+    assert.match(main, /serializePrefs/);
+    assert.match(preload, /prefs:collect/);
+});
+
+test('File menu import filters missing paths and applies prefs:imported', () => {
+    const main = readRepo('main.js');
+    const preload = readRepo('preload.js');
+    const index = readRepo('app/js/index.js');
+    assert.match(main, /Import layout/);
+    assert.match(main, /prefs:imported/);
+    assert.match(main, /filterMissingPaths/);
+    assert.match(main, /Clip paths are absolute\. Files that are not on this computer are left empty\./);
+    assert.match(preload, /prefs:imported/);
+    assert.match(index, /prefs:imported/);
+    assert.match(index, /applyPrefs/);
+    assert.match(index, /persistPrefs/);
 });
 
 test('resolveSaveDefaultPath uses lastSaveDir when it exists', () => {

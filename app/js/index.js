@@ -138,7 +138,7 @@ function persistPrefs() {
     })
 }
 
-function applyPrefs(prefs) {
+function applyPrefs(prefs, options) {
     document.getElementById('output-resolution').value = prefs.width + 'x' + prefs.height
     document.getElementById('output-audio').value = prefs.audio
     document.getElementById('output-fit').value = prefs.fit
@@ -149,7 +149,10 @@ function applyPrefs(prefs) {
         durationSelect.value = 'longest'
     }
     lastSaveDir = prefs.lastSaveDir
-    if (!shouldRestoreGridAndPaths(userTouchedGrid)) {
+    const applyGrid = options && options.applyGrid === true
+        ? true
+        : shouldRestoreGridAndPaths(userTouchedGrid)
+    if (!applyGrid) {
         return
     }
     switchGrid(prefs.gridType)
@@ -553,6 +556,26 @@ electronAPI.receive('video:cancelled', () => {
 electronAPI.receive('video:done', () => {
     resetConvertUi()
     showToast()
+})
+
+electronAPI.receive('prefs:collect', () => {
+    if (!window.electronAPI || typeof electronAPI.collectPrefs !== 'function') {
+        return
+    }
+    electronAPI.collectPrefs(collectPrefs()).catch((err) => {
+        console.error('prefs:collect failed:', err)
+    })
+})
+
+electronAPI.receive('prefs:imported', (prefs) => {
+    applyingPrefs = true
+    try {
+        applyPrefs(prefs, { applyGrid: true })
+    } finally {
+        applyingPrefs = false
+        userTouchedGrid = true
+        persistPrefs()
+    }
 })
 
 // Function to clear all video positions

@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
   receive: (channel, func) => {
-    let validChannels = ['video:progress', 'video:done', 'video:error', 'video:cancelled']
+    let validChannels = ['video:progress', 'video:done', 'video:error', 'video:cancelled', 'prefs:imported', 'prefs:collect']
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender` 
       ipcRenderer.on(channel, (event, ...args) => func(...args))
@@ -39,6 +39,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   savePrefs: (prefs) => {
     return ipcRenderer.invoke('prefs:save', prefs)
+  },
+
+  collectPrefs: (prefs) => {
+    return ipcRenderer.invoke('prefs:collect', prefs)
   },
 
   // Get file path using webUtils API
