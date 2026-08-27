@@ -67,7 +67,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 053 | Load slot-fill and media-accept from one UMD file each | P3 | S | — (before 060) | DONE |
 | 054 | One allowlist for duration, resolution, fit, and audio | P3 | S | — (before 059) | TODO |
 | 055 | Cap encode and probe stderr buffers | P2 | S | 046 | TODO |
-| 056 | Investigate cover-art `Duration:` winning the probe | P3 | S | — | TODO |
+| 056 | Investigate cover-art `Duration:` winning the probe | P3 | S | — | DONE — not shipped |
 | 057 | Investigate packaged `file://` cell previews | P3 | S | — | DONE |
 | 058 | Investigate 4K × 9 HTML5 posters while converting | P3 | S | — | TODO |
 | 059 | Let the user pick which occupied cell supplies audio | P3 | M | 054 | TODO |
