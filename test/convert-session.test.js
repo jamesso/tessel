@@ -44,11 +44,12 @@ test('preload receive whitelist includes video:cancelled', () => {
 });
 
 test('main registers video:cancel and kill notifies video:cancelled not video:done', () => {
-    const src = read('main.js');
-    assert.match(src, /ipcMain\.on\('video:cancel'/);
-    assert.match(src, /killActiveFfmpeg\(/);
-    assert.match(src, /sendToRenderer\('video:cancelled'\)/);
-    const killFn = src.match(/function killActiveFfmpeg[\s\S]*?\n}\n/);
+    const mainSrc = read('main.js');
+    assert.match(mainSrc, /ipcMain\.on\('video:cancel'/);
+    assert.match(mainSrc, /ffmpegSession\.killActiveFfmpeg\(/);
+    const sessionSrc = read('lib/ffmpeg-session.js');
+    assert.match(sessionSrc, /sendToRenderer\('video:cancelled'\)/);
+    const killFn = sessionSrc.match(/function killActiveFfmpeg[\s\S]*?\n    }\n/);
     assert.ok(killFn, 'killActiveFfmpeg function');
     assert.doesNotMatch(killFn[0], /video:done/);
     assert.doesNotMatch(killFn[0], /video:error/);
