@@ -86,6 +86,7 @@ function setSlotOccupied(dropzone, filePath) {
         label.title = name
         label.classList.remove('hidden')
     }
+    dropzone.draggable = true
 }
 
 function clearSlot(dropzone, vidNum) {
@@ -105,31 +106,97 @@ function clearSlot(dropzone, vidNum) {
         label.removeAttribute('title')
         label.classList.add('hidden')
     }
+    dropzone.draggable = false
+    dropzone.classList.remove('dragging')
+}
+
+function visibleSlotCount() {
+    return currentGrid === '2x2' ? 4 : 9
+}
+
+function isOsFileDrag(dataTransfer) {
+    const types = Array.from((dataTransfer && dataTransfer.types) || [])
+    return types.indexOf('Files') !== -1
+}
+
+function applyVisiblePaths(previous, next) {
+    const allDropzones = document.querySelectorAll('.dropzone')
+    for (let s = 0; s < next.length; s++) {
+        if (next[s] === previous[s]) {
+            continue
+        }
+        if (next[s]) {
+            setSlotOccupied(allDropzones[s], next[s])
+        } else {
+            clearSlot(allDropzones[s], s + 1)
+        }
+    }
+}
+
+function clearDropzoneDragStyles() {
+    document.querySelectorAll('.dropzone').forEach(function (el) {
+        el.classList.remove('hover', 'copy', 'drop-target', 'dragging')
+    })
 }
 
 // File drop handling is now done directly in the ondrop event handlers
 
 //On select
+let suppressDropzoneClick = false
 let dz = document.querySelectorAll('.dropzone');
 for (let i = 0; i < dz.length; i++){
     let options = dz[i].getAttribute("id").split('-');
     let vidNum = options[1];
-    let maxFiles = parseInt(options[2]);
 
     // Add drag and drop handlers
-    dz[i].ondragover = () => {
+    dz[i].ondragover = (e) => {
         dz[i].classList.add("hover");
-        dz[i].classList.add("copy");
+        if (isOsFileDrag(e.dataTransfer)) {
+            dz[i].classList.add("copy");
+            dz[i].classList.remove("drop-target");
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'copy';
+            }
+        } else {
+            dz[i].classList.remove("copy");
+            if (!dz[i].classList.contains('dragging')) {
+                dz[i].classList.add("drop-target");
+            }
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
+        }
         return false;
     };
 
     dz[i].ondragleave = () => {
         dz[i].classList.remove("hover");
         dz[i].classList.remove("copy");
+        dz[i].classList.remove("drop-target");
         return false;
     };
 
+    dz[i].ondragstart = (e) => {
+        if (e.target.closest && e.target.closest('.close-btn')) {
+            e.preventDefault();
+            return;
+        }
+        if (!dz[i].classList.contains('file') || !window['vidPath' + vidNum]) {
+            e.preventDefault();
+            return;
+        }
+        suppressDropzoneClick = true
+        e.dataTransfer.setData('application/x-tessel-slot', String(vidNum));
+        e.dataTransfer.setData('text/plain', String(vidNum));
+        e.dataTransfer.effectAllowed = 'move';
+        dz[i].classList.add('dragging');
+    };
+
     dz[i].ondragend = () => {
+        clearDropzoneDragStyles();
+        setTimeout(function () {
+            suppressDropzoneClick = false
+        }, 0)
         return false;
     };
 
@@ -137,9 +204,23 @@ for (let i = 0; i < dz.length; i++){
         e.preventDefault();
         dz[i].classList.remove("hover");
         dz[i].classList.remove("copy");
+        dz[i].classList.remove("drop-target");
 
         const files = Array.from(e.dataTransfer.files || []);
         if (files.length === 0) {
+            const raw = e.dataTransfer.getData('application/x-tessel-slot') || e.dataTransfer.getData('text/plain');
+            const fromVid = parseInt(raw, 10);
+            const visibleCount = visibleSlotCount();
+            const fromIndex = fromVid - 1;
+            if (!fromVid || fromIndex < 0 || fromIndex >= visibleCount || i >= visibleCount) {
+                return false;
+            }
+            const paths = [];
+            for (let s = 0; s < visibleCount; s++) {
+                paths[s] = window['vidPath' + (s + 1)];
+            }
+            const next = window.swapOrMove(paths, fromIndex, i);
+            applyVisiblePaths(paths, next);
             return false;
         }
 
@@ -171,7 +252,7 @@ for (let i = 0; i < dz.length; i++){
         // currently visible empty slots only (2×2: indices 0–3; 3×3: 0–8).
         // Never assign into hidden slots 5–9 while 2×2 is active. Files beyond
         // empty slots are ignored (alert once).
-        const visibleCount = currentGrid === '2x2' ? 4 : 9;
+        const visibleCount = visibleSlotCount();
         const occupied = [];
         for (let s = 0; s < visibleCount; s++) {
             occupied[s] = Boolean(window['vidPath' + (s + 1)]);
@@ -195,6 +276,9 @@ for (let i = 0; i < dz.length; i++){
     // Click handler
     dz[i].onclick = async (e) => {
         e.preventDefault()
+        if (suppressDropzoneClick) {
+            return
+        }
         
         if (!window.electronAPI) {
             console.error('electronAPI is not available!')
