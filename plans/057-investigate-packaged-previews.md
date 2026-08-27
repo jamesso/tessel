@@ -97,11 +97,11 @@ Verification: `npm test` → exit 0.
 
 ## Done criteria
 
-- [ ] `## Investigation result` filled (packaged work / fail + OS)
-- [ ] Either no code change **or** a custom protocol that does not disable `webSecurity`
-- [ ] Unpackaged posters still work
-- [ ] `npm test` exits 0
-- [ ] `plans/README.md` 057 DONE
+- [x] `## Investigation result` filled (packaged work / fail + OS)
+- [x] Either no code change **or** a custom protocol that does not disable `webSecurity`
+- [x] Unpackaged posters still work
+- [x] `npm test` exits 0
+- [x] `plans/README.md` 057 DONE
 
 ## STOP conditions
 
@@ -111,7 +111,7 @@ Verification: `npm test` → exit 0.
 
 ## Investigation result
 
-_(executor fills)_
+**Packaged posters work.** Electron **44.0.0**, macOS Darwin 25.5.0 arm64. `npm run package-mac` wrote `release-builds/Tessel-darwin-arm64`; the window origin was `file://…/app.asar/app/index.html` with `webSecurity: true`. Restore-from-prefs of a 1s lavfi `testsrc` MP4 set `<video src=file:///tmp/tessel-057-preview.mp4>`: `readyState` 4, 320×240, `error` null, CSS `display:block`. Filling a second cell through `setSlotOccupied` (same path as a drop after `webUtils.getPathForFile`) with `/Users/james/Downloads/mesa/test-060124-video1.mp4` decoded 1920×1080 and painted a frame. A CDP screenshot showed the color-bar poster plus filename overlay, not filename-only. No production change. Plan 052 is unmerged (fuses at Electron defaults); keep `GrantFileProtocolExtraPrivileges` on — this spike did not prove posters survive if that fuse is flipped.
 
 ## Maintenance notes
 
