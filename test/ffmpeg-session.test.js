@@ -30,6 +30,35 @@ function createSpawnFake() {
     return { spawn, probes, encodes };
 }
 
+function createConcurrencySpawnFake() {
+    const probes = [];
+    const encodes = [];
+    let liveProbes = 0;
+    let maxLiveProbes = 0;
+
+    function spawn(_binary, args) {
+        const proc = createFakeProcess();
+        if (args.includes('-hide_banner')) {
+            probes.push(proc);
+            liveProbes++;
+            maxLiveProbes = Math.max(maxLiveProbes, liveProbes);
+            proc.once('close', () => {
+                liveProbes--;
+            });
+        } else {
+            encodes.push(proc);
+        }
+        return proc;
+    }
+
+    return {
+        spawn,
+        probes,
+        encodes,
+        getMaxLiveProbes: () => maxLiveProbes,
+    };
+}
+
 const fakeFs = {
     existsSync: () => false,
     unlinkSync: () => {},
@@ -372,4 +401,76 @@ test('stale probe close after cancel-then-convert does not clear the new job', a
 
     assert.ok(!sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Could not read video duration'));
     assert.equal(session.isBusy(), true);
+});
+
+test('duplicate slot paths spawn one probe', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const { session, sent } = createSession(spawn);
+    const same = '/a.mp4';
+
+    session.convertVideo(defaultConvertPayload({
+        gridType: '3x3',
+        vidPath1: same,
+        vidPath2: same,
+        vidPath3: same,
+        vidPath4: same,
+        vidPath5: same,
+        vidPath6: same,
+        vidPath7: same,
+        vidPath8: same,
+        vidPath9: same,
+    }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+    encodes[0].emit('close', 0);
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:done'));
+    assert.equal(probes.length, 1);
+});
+
+test('2x2 probes only selected slots not hidden indices', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const { session, sent } = createSession(spawn);
+
+    session.convertVideo(defaultConvertPayload({
+        gridType: '2x2',
+        vidPath1: '/a.mp4',
+        vidPath5: '/hidden.mp4',
+    }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+    encodes[0].emit('close', 0);
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:done'));
+    assert.equal(probes.length, 1);
+});
+
+test('four unique paths never exceed three concurrent probes', async () => {
+    const { spawn, probes, encodes, getMaxLiveProbes } = createConcurrencySpawnFake();
+    const { session, sent } = createSession(spawn);
+
+    session.convertVideo(defaultConvertPayload({
+        vidPath1: '/a.mp4',
+        vidPath2: '/b.mp4',
+        vidPath3: '/c.mp4',
+        vidPath4: '/d.mp4',
+    }));
+
+    await waitUntil(() => probes.length === 3);
+    assert.equal(getMaxLiveProbes(), 3);
+
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => probes.length === 4);
+
+    for (let i = 1; i < probes.length; i++) {
+        probes[i].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    }
+
+    await waitUntil(() => encodes.length === 1);
+    encodes[0].emit('close', 0);
+    await waitUntil(() => sent.some((s) => s.channel === 'video:done'));
 });
