@@ -1,0 +1,29 @@
+{
+  "ffmpegVersion": "7.1",
+  "platforms": {
+    "darwin-arm64": {
+      "vendor": "Martin Riedl FFmpeg Build Server",
+      "archiveUrl": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1741000090_7.1.1/ffmpeg.zip",
+      "archiveSha256": "e18c39a330ad783c33d6d7b47784e82a42f8acdbb497a1f73550f1bc0e830d44",
+      "binaryInArchive": "ffmpeg",
+      "licenseInArchive": null,
+      "versionLine": "ffmpeg version 7.1.1-https://www.martin-riedl.de Copyright (c) 2000-2025 the FFmpeg developers"
+    },
+    "linux-x64": {
+      "vendor": "BtbN/FFmpeg-Builds",
+      "archiveUrl": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-16-13-00/ffmpeg-n7.1.5-16-g9a4bb2c579-linux64-gpl-7.1.tar.xz",
+      "archiveSha256": "21a55e0ad14423572523c04425fd2f7a03bee0436d25a36e629362b99e45fb00",
+      "binaryInArchive": "ffmpeg-n7.1.5-16-g9a4bb2c579-linux64-gpl-7.1/bin/ffmpeg",
+      "licenseInArchive": "ffmpeg-n7.1.5-16-g9a4bb2c579-linux64-gpl-7.1/LICENSE.txt",
+      "versionLine": "ffmpeg version 7.1.5 Copyright (c) 2000-2025 the FFmpeg developers"
+    },
+    "win32-x64": {
+      "vendor": "BtbN/FFmpeg-Builds",
+      "archiveUrl": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-16-13-00/ffmpeg-n7.1.5-16-g9a4bb2c579-win64-gpl-7.1.zip",
+      "archiveSha256": "907ae59ae94d39561b9e03f6d5b0ec4a2778df1e75c763c9a0ddbae266415860",
+      "binaryInArchive": "ffmpeg-n7.1.5-16-g9a4bb2c579-win64-gpl-7.1/bin/ffmpeg.exe",
+      "licenseInArchive": "ffmpeg-n7.1.5-16-g9a4bb2c579-win64-gpl-7.1/LICENSE.txt",
+      "versionLine": "ffmpeg version 7.1.5 Copyright (c) 2000-2025 the FFmpeg developers"
+    }
+  }
+}
