@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
-const { VIDEO_EXTENSIONS, isProbablyVideoFile } = require('../lib/media-accept');
+const { VIDEO_EXTENSIONS, isProbablyVideoFile } = require('../app/js/media-accept');
 
 const root = path.join(__dirname, '..');
 
@@ -48,27 +48,6 @@ test('rejects image/jpeg even when the name looks like a video', () => {
 
 test('accepts a missing type when the name has a video extension', () => {
     assert.equal(isProbablyVideoFile({ name: 'a.webm' }), true);
-});
-
-test('renderer media-accept script exports the same helper as lib', () => {
-    const renderer = require('../app/js/media-accept');
-    assert.deepEqual(renderer.VIDEO_EXTENSIONS, VIDEO_EXTENSIONS);
-    assert.equal(
-        renderer.isProbablyVideoFile({ type: '', name: 'clip.MOV' }),
-        isProbablyVideoFile({ type: '', name: 'clip.MOV' })
-    );
-    assert.equal(
-        renderer.isProbablyVideoFile({ type: 'image/jpeg', name: 'foo.mp4' }),
-        isProbablyVideoFile({ type: 'image/jpeg', name: 'foo.mp4' })
-    );
-    assert.equal(
-        renderer.isProbablyVideoFile({ type: 'application/octet-stream', name: 'clip.mp4' }),
-        isProbablyVideoFile({ type: 'application/octet-stream', name: 'clip.mp4' })
-    );
-    assert.equal(
-        renderer.isProbablyVideoFile({ type: 'application/octet-stream', name: 'notes.txt' }),
-        isProbablyVideoFile({ type: 'application/octet-stream', name: 'notes.txt' })
-    );
 });
 
 test('index page loads media-accept as a renderer script, not via preload', () => {

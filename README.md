@@ -148,8 +148,8 @@ npm run package-linux
 tessel/
 ├── .github/
 │   └── workflows/         # CI: test always; pack + GitHub Release on version bump push
-├── app/                   # Renderer (HTML, CSS, JS)
-├── lib/                   # Mosaic, duration, media-accept helpers (main + tests)
+├── app/                   # Renderer (HTML, CSS, JS; helpers under app/js/)
+├── lib/                   # Mosaic, session, prefs, etc. (main + tests)
 ├── test/                  # node:test suite
 ├── assets/                # Icons, logos, and screenshots
 ├── scripts/

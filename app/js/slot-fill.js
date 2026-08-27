@@ -1,4 +1,3 @@
-// Tests cover lib/slot-fill.js. Keep this loop in sync with that module.
 (function (root) {
     function nextEmptySlots(occupied, visibleCount) {
         const empties = [];
