@@ -33,7 +33,10 @@ test('sparse 2x2 filter and args contract', () => {
     const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
     const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, '/out.mp4');
 
-    assert.match(filterComplex, /color=black/);
+    const colorSources = filterComplex.match(/color=black:size=/g);
+    assert.equal(colorSources.length, 1);
+    assert.match(filterComplex, /color=black:size=1280x720/);
+    assert.doesNotMatch(filterComplex, /color=black:size=640x360/);
     assert.match(filterComplex, /force_original_aspect_ratio=decrease/);
     assert.match(filterComplex, /pad=/);
     assert.match(filterComplex, /\[final\]/);
@@ -138,14 +141,19 @@ test('3x3 overlay positions and cell sizes fill canvas width', () => {
     assert.match(filterComplex, /overlay=x=852:y=480\[final\]/);
 });
 
-test('3x3 black placeholder in last column uses 428px width', () => {
+test('3x3 all-black slots skip per-cell color sources; last column metadata stays 428px', () => {
     const longestDuration = 10;
     const slotPaths = [null, null, null, null, null, null, null, null, null];
     const videoInfo = buildVideoInfo(slotPaths, {}, longestDuration);
     const { blockWidth, blockHeight } = gridMetrics('3x3');
     const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
 
-    assert.match(filterComplex, /color=black:size=428x240/);
+    assert.equal(videoInfo[8].cellWidth, 428);
+    const colorSources = filterComplex.match(/color=black:size=/g);
+    assert.equal(colorSources.length, 1);
+    assert.match(filterComplex, /color=black:size=1280x720/);
+    assert.doesNotMatch(filterComplex, /color=black:size=428x240/);
+    assert.doesNotMatch(filterComplex, /overlay=/);
 });
 
 test('2x2 grid metrics unchanged', () => {
