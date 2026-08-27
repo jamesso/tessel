@@ -1,4 +1,3 @@
-// Tests cover lib/media-accept.js. Keep this loop in sync with that module.
 (function (root) {
     const VIDEO_EXTENSIONS = ['mp4', 'mov', 'm4v', 'webm', 'avi', 'mkv'];
     const VIDEO_NAME_RE = new RegExp('\\.(' + VIDEO_EXTENSIONS.join('|') + ')$', 'i');

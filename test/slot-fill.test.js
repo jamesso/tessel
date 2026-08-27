@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { nextEmptySlots, assignDrops, swapOrMove } = require('../lib/slot-fill');
+const { nextEmptySlots, assignDrops, swapOrMove } = require('../app/js/slot-fill');
 
 test('4 files onto 2x2 with slot 0 filled fill the next three empties', () => {
     const empties = nextEmptySlots([true, false, false, false], 4);
@@ -55,19 +55,4 @@ test('swapOrMove moves a clip onto an empty visible slot', () => {
 test('swapOrMove swaps two occupied visible slots', () => {
     const paths = ['a.mp4', 'b.mp4', '', ''];
     assert.deepEqual(swapOrMove(paths, 0, 1), ['b.mp4', 'a.mp4', '', '']);
-});
-
-test('renderer slot-fill script exports the same helpers as lib', () => {
-    const renderer = require('../app/js/slot-fill');
-    const occupied = [true, false, false, false];
-    assert.deepEqual(renderer.nextEmptySlots(occupied, 4), nextEmptySlots(occupied, 4));
-    assert.deepEqual(renderer.assignDrops([1, 2, 3], 0, 4), assignDrops([1, 2, 3], 0, 4));
-    assert.deepEqual(
-        renderer.swapOrMove(['a.mp4', 'b.mp4', '', ''], 0, 1),
-        swapOrMove(['a.mp4', 'b.mp4', '', ''], 0, 1)
-    );
-    assert.deepEqual(
-        renderer.swapOrMove(['a.mp4', '', 'c.mp4', ''], 0, 1),
-        swapOrMove(['a.mp4', '', 'c.mp4', ''], 0, 1)
-    );
 });
