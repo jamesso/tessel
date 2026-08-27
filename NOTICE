@@ -23,6 +23,13 @@ For general information about FFmpeg licensing, see:
 
   https://ffmpeg.org/legal.html
 
+Hugeicons
+---------
+
+UI icons in `app/icons/sprite.svg` and `app/index.html` are from the Hugeicons
+free stroke set (`@hugeicons/core-free-icons`), MIT licensed. Regenerate with
+`npm run vendor-icons`. See https://hugeicons.com/
+
 Disclaimer
 ----------
 

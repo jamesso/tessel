@@ -25,8 +25,10 @@ test('shouldUnlinkPartialOutput only when this job created the file after encode
     assert.equal(shouldUnlinkPartialOutput({ encodeStarted: false, createdByThisJob: false }), false);
 });
 
-test('tempOutputPath appends .tessel-partial sibling suffix', () => {
-    assert.equal(tempOutputPath('/tmp/a.mp4'), '/tmp/a.mp4.tessel-partial');
+test('tempOutputPath keeps a muxable .mp4 extension on the sibling temp', () => {
+    assert.equal(tempOutputPath('/tmp/a.mp4'), '/tmp/a.tessel-partial.mp4');
+    assert.equal(tempOutputPath('/Users/me/out.MP4'), '/Users/me/out.tessel-partial.MP4');
+    assert.equal(tempOutputPath('/tmp/noext'), '/tmp/noext.tessel-partial.mp4');
 });
 
 test('preload send whitelist includes video:cancel', () => {

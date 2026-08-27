@@ -178,7 +178,7 @@ jobs:
         
         ### Features
         - 2×2 and 3×3 mosaics with clip names and multi-file drop
-        - 720p or 1080p, mute or first occupied cell’s audio (grid order), letterbox or crop
+        - 720p or 1080p, mute or first occupied cell’s audio (grid order), letterbox or crop, duration, and pad — in Advanced
         - Duration: full length (pad shorter cells with black or freeze) or cap at 5, 15, 30, or 60 seconds from the start
         - Session restore: output settings, last save folder, and occupied cells on launch when files still exist
         - Rearrange clips: drag filled cell onto another to swap, or onto empty to copy

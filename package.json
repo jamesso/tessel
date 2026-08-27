@@ -7,6 +7,7 @@
   "scripts": {
     "prepare": "git config core.hooksPath scripts/githooks || true",
     "postinstall": "node scripts/install-ffmpeg.js",
+    "vendor-icons": "node scripts/vendor-hugeicons.js",
     "start": "electron .",
     "dev": " nodemon --exec electron .",
     "package-mac": "node scripts/package.mjs darwin",
@@ -22,8 +23,8 @@
   "devDependencies": {
     "@electron/fuses": "^2.1.3",
     "@electron/packager": "^20.0.4",
+    "@hugeicons/core-free-icons": "^4.3.0",
     "electron": "^44.0.0",
     "nodemon": "^3.1.14"
-  },
-  "dependencies": {}
+  }
 }

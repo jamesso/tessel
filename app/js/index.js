@@ -110,13 +110,14 @@ function applyAudioSelection(audio) {
     })
     if (values.indexOf(preferred) !== -1) {
         select.value = preferred
-        return
-    }
-    if (values.indexOf('first') !== -1) {
+    } else if (values.indexOf('first') !== -1) {
         select.value = 'first'
-        return
+    } else {
+        select.value = 'none'
     }
-    select.value = 'none'
+    if (typeof window.syncSelectFace === 'function') {
+        window.syncSelectFace(select)
+    }
 }
 
 function refreshAudioOptions() {
@@ -213,6 +214,30 @@ function persistPrefs() {
     })
 }
 
+function advancedSettingsDialog() {
+    return document.getElementById('advanced-settings')
+}
+
+function closeAdvancedSettings() {
+    if (typeof window.closeOutputSelects === 'function') {
+        window.closeOutputSelects()
+    }
+    const dialog = advancedSettingsDialog()
+    if (dialog && dialog.open) {
+        dialog.close()
+    }
+}
+
+function openAdvancedSettings() {
+    if (converting) {
+        return
+    }
+    const dialog = advancedSettingsDialog()
+    if (dialog && typeof dialog.showModal === 'function') {
+        dialog.showModal()
+    }
+}
+
 function applyPrefs(prefs, options) {
     document.getElementById('output-resolution').value = prefs.width + 'x' + prefs.height
     document.getElementById('output-fit').value = prefs.fit
@@ -241,6 +266,9 @@ function applyPrefs(prefs, options) {
     }
     refreshAudioOptions()
     applyAudioSelection(prefs.audio)
+    if (typeof window.syncSelectFaces === 'function') {
+        window.syncSelectFaces()
+    }
 }
 
 async function restorePrefs() {
@@ -571,6 +599,7 @@ document.getElementById('convert').addEventListener('click', async (e) => {
             ...getOutputSettings(),
         })
         overlay.style.display = 'block'
+        closeAdvancedSettings()
         const toast = document.getElementById('toast')
         if (toast) {
             toast.style.display = 'none'
@@ -697,6 +726,32 @@ document.addEventListener('DOMContentLoaded', () => {
     settingIds.forEach((id) => {
         document.getElementById(id).addEventListener('change', persistPrefs)
     })
+
+    const advancedOpen = document.getElementById('advanced-settings-open')
+    const advancedClose = document.getElementById('advanced-settings-close')
+    const advancedDone = document.getElementById('advanced-settings-done')
+    const advancedDialog = advancedSettingsDialog()
+    if (advancedOpen) {
+        advancedOpen.addEventListener('click', openAdvancedSettings)
+    }
+    if (advancedClose) {
+        advancedClose.addEventListener('click', closeAdvancedSettings)
+    }
+    if (advancedDone) {
+        advancedDone.addEventListener('click', closeAdvancedSettings)
+    }
+    if (advancedDialog) {
+        advancedDialog.addEventListener('click', (event) => {
+            if (event.target === advancedDialog) {
+                closeAdvancedSettings()
+            }
+        })
+        advancedDialog.addEventListener('close', () => {
+            if (typeof window.closeOutputSelects === 'function') {
+                window.closeOutputSelects()
+            }
+        })
+    }
 
     restorePrefs()
 })

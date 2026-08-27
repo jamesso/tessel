@@ -8,6 +8,9 @@
         <title>Tessel</title>
     </head>
     <body>
+        <!-- hugeicons-sprite -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="hi-sprite" width="0" height="0" aria-hidden="true" focusable="false"><symbol id="hi-add-01" viewBox="0 0 24 24" fill="none"><path d="M12.001 5.00003V19.002" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /><path d="M19.002 12.002L4.99998 12.002" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></symbol><symbol id="hi-tick-02" viewBox="0 0 24 24" fill="none"><path d="M5 14L8.5 17.5L19 6.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></symbol><symbol id="hi-cancel-01" viewBox="0 0 24 24" fill="none"><path d="M18 6L6.00081 17.9992M17.9992 18L6 6.00085" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></symbol><symbol id="hi-sliders-horizontal" viewBox="0 0 24 24" fill="none"><path d="M3.99963 5.00055L9.99963 5.00031" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /><path d="M12.9996 5.00031L19.9996 5.00031" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /><path d="M15.9996 9.00031L15.9996 15.0003" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /><path d="M9.99963 2.00031L9.99963 8.00031" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /><path d="M11.9996 16.0003L11.9996 22.0003" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /><path d="M15.9996 12.0001L19.9996 12.0003" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /><path d="M3.99963 12.0005L12.9996 12.0003" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /><path d="M11.9996 19.0003L19.9996 19.0003" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /><path d="M3.99963 19.0005L8.99963 19.0003" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /></symbol><symbol id="hi-arrow-down-01" viewBox="0 0 24 24" fill="none"><path d="M18 9.00005C18 9.00005 13.5811 15 12 15C10.4188 15 6 9 6 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></symbol><symbol id="hi-grid-2x2" viewBox="0 0 24 24" fill="none"><path d="M4.31802 19.682C5.63604 21 7.75736 21 12 21C16.2426 21 18.364 21 19.682 19.682C21 18.364 21 16.2426 21 12C21 7.75736 21 5.63604 19.682 4.31802C18.364 3 16.2426 3 12 3C7.75736 3 5.63604 3 4.31802 4.31802C3 5.63604 3 7.75736 3 12C3 16.2426 3 18.364 4.31802 19.682Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5" /><path d="M12 3V21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /><path d="M21.0059 11.9941H3.00586" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></symbol><symbol id="hi-grid-3x3" viewBox="0 0 24 24" fill="none"><path d="M9.00034 3.50019V20.5311M15.0003 3.03125V20.5311M20.5 15L3.5 15M20.5 9L3.5 9.00004" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /><path d="M4.31802 19.682C5.63604 21 7.75736 21 12 21C16.2426 21 18.364 21 19.682 19.682C21 18.364 21 16.2426 21 12C21 7.75736 21 5.63604 19.682 4.31802C18.364 3 16.2426 3 12 3C7.75736 3 5.63604 3 4.31802 4.31802C3 5.63604 3 7.75736 3 12C3 16.2426 3 18.364 4.31802 19.682Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5" /></symbol></svg>
+        <!-- /hugeicons-sprite -->
         <header>
             <div class="header-block container">
                 <a class="logo" href="#">
@@ -26,131 +29,154 @@
         <main id="content" role="main">
             <p class="instruction">Select Videos</p>
             <div class="grid-toggle">
-                <button id="grid-2x2" class="grid-btn active">2x2 Grid</button>
-                <button id="grid-3x3" class="grid-btn">3x3 Grid</button>
+                <button type="button" id="grid-2x2" class="grid-btn active">
+                    <svg class="hi" width="16" height="16" aria-hidden="true" focusable="false"><use href="#hi-grid-2x2"/></svg>
+                    2×2
+                </button>
+                <button type="button" id="grid-3x3" class="grid-btn">
+                    <svg class="hi" width="16" height="16" aria-hidden="true" focusable="false"><use href="#hi-grid-3x3"/></svg>
+                    3×3
+                </button>
             </div>
             <div class="main-block container grid-2x2" id="video-grid">
                 <div class="dropzone empty" id="video-1-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="1">×</button>
+                    <button type="button" class="close-btn hidden" data-video="1" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
                 <div class="dropzone empty" id="video-2-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="2">×</button>
+                    <button type="button" class="close-btn hidden" data-video="2" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
                 <div class="dropzone empty" id="video-3-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="3">×</button>
+                    <button type="button" class="close-btn hidden" data-video="3" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
                 <div class="dropzone empty" id="video-4-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="4">×</button>
+                    <button type="button" class="close-btn hidden" data-video="4" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
                 <div class="dropzone empty hidden" id="video-5-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="5">×</button>
+                    <button type="button" class="close-btn hidden" data-video="5" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
                 <div class="dropzone empty hidden" id="video-6-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="6">×</button>
+                    <button type="button" class="close-btn hidden" data-video="6" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
                 <div class="dropzone empty hidden" id="video-7-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="7">×</button>
+                    <button type="button" class="close-btn hidden" data-video="7" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
                 <div class="dropzone empty hidden" id="video-8-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="8">×</button>
+                    <button type="button" class="close-btn hidden" data-video="8" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
                 <div class="dropzone empty hidden" id="video-9-1">
-                    <span class="dropzone-icon empty-icon">+</span>
-                    <span class="dropzone-icon file-icon hidden">✓</span>
+                    <span class="dropzone-icon empty-icon"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-add-01"/></svg></span>
+                    <span class="dropzone-icon file-icon hidden"><svg class="hi" width="24" height="24" aria-hidden="true" focusable="false"><use href="#hi-tick-02"/></svg></span>
                     <video class="cell-preview hidden" muted playsinline preload="metadata" aria-hidden="true"></video>
                     <span class="file-label hidden"></span>
-                    <button class="close-btn hidden" data-video="9">×</button>
+                    <button type="button" class="close-btn hidden" data-video="9" aria-label="Remove clip"><svg class="hi" width="14" height="14" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg></button>
                 </div>
             </div>
         </main>
         <footer>
             <div class="footer-block container">
-                <div class="output-settings" role="group" aria-label="Output settings">
-                    <label class="output-field">
-                        <span>Resolution</span>
-                        <select id="output-resolution">
-                            <option value="1280x720" selected>1280×720</option>
-                            <option value="1920x1080">1920×1080</option>
-                        </select>
-                    </label>
-                    <label class="output-field">
-                        <span>Audio</span>
-                        <select id="output-audio">
-                            <option value="none" selected>Mute</option>
-                            <option value="first">First clip</option>
-                        </select>
-                    </label>
-                    <label class="output-field">
-                        <span>Fit</span>
-                        <select id="output-fit">
-                            <option value="letterbox" selected>Letterbox</option>
-                            <option value="crop">Crop</option>
-                        </select>
-                    </label>
-                    <label class="output-field">
-                        <span>Duration</span>
-                        <select id="output-duration">
-                            <option value="longest" selected>Full length</option>
-                            <option value="5">5 seconds</option>
-                            <option value="15">15 seconds</option>
-                            <option value="30">30 seconds</option>
-                            <option value="60">60 seconds</option>
-                        </select>
-                    </label>
-                    <label class="output-field">
-                        <span>Pad</span>
-                        <select id="output-pad">
-                            <option value="black" selected>Black</option>
-                            <option value="freeze">Freeze</option>
-                        </select>
-                    </label>
-                </div>
+                <button type="button" class="button-secondary" id="advanced-settings-open">
+                    <svg class="hi" width="16" height="16" aria-hidden="true" focusable="false"><use href="#hi-sliders-horizontal"/></svg>
+                    Advanced
+                </button>
                 <button class="button" id="convert" type="submit">Convert</button>
             </div>
         </footer>
+        <dialog id="advanced-settings" aria-labelledby="advanced-settings-title">
+            <div class="dialog-header">
+                <h2 id="advanced-settings-title">Advanced</h2>
+                <button type="button" class="dialog-close" id="advanced-settings-close" aria-label="Close">
+                    <svg class="hi" width="18" height="18" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg>
+                </button>
+            </div>
+            <div class="output-settings" role="group" aria-label="Output settings">
+                <div class="output-field">
+                    <span class="output-field-label">Resolution</span>
+                    <select id="output-resolution">
+                        <option value="1280x720" selected>1280×720</option>
+                        <option value="1920x1080">1920×1080</option>
+                    </select>
+                </div>
+                <div class="output-field">
+                    <span class="output-field-label">Audio</span>
+                    <select id="output-audio">
+                        <option value="none" selected>Mute</option>
+                        <option value="first">First clip</option>
+                    </select>
+                </div>
+                <div class="output-field">
+                    <span class="output-field-label">Fit</span>
+                    <select id="output-fit">
+                        <option value="letterbox" selected>Letterbox</option>
+                        <option value="crop">Crop</option>
+                    </select>
+                </div>
+                <div class="output-field">
+                    <span class="output-field-label">Duration</span>
+                    <select id="output-duration">
+                        <option value="longest" selected>Full length</option>
+                        <option value="5">5 seconds</option>
+                        <option value="15">15 seconds</option>
+                        <option value="30">30 seconds</option>
+                        <option value="60">60 seconds</option>
+                    </select>
+                </div>
+                <div class="output-field">
+                    <span class="output-field-label">Pad</span>
+                    <select id="output-pad">
+                        <option value="black" selected>Black</option>
+                        <option value="freeze">Freeze</option>
+                    </select>
+                </div>
+            </div>
+            <button type="button" class="button-secondary dialog-done" id="advanced-settings-done">Done</button>
+        </dialog>
         <div id="overlay">
             <p class="instruction">Converting</p>
             <p id="progress-text">0%</p>
             <div class="loader-grid"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-            <button type="button" id="cancel-convert">Cancel</button>
+            <button type="button" id="cancel-convert">
+                <svg class="hi" width="16" height="16" aria-hidden="true" focusable="false"><use href="#hi-cancel-01"/></svg>
+                Cancel
+            </button>
         </div>
         <div id="toast" role="status">Conversion complete</div>
         
         <script src="js/media-accept.js"></script>
         <script src="js/slot-fill.js"></script>
         <script src="js/cell-preview.js"></script>
+        <script src="js/select.js"></script>
         <script src="js/index.js"></script>
     </body>
 </html>

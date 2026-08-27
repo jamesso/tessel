@@ -6,6 +6,7 @@ const os = require('os');
 const path = require('path');
 
 const ffmpegBinary = require('../lib/ffmpeg-binary');
+const { tempOutputPath } = require('../lib/convert-session');
 const {
     gridMetrics,
     buildVideoInfo,
@@ -43,6 +44,41 @@ test('bundled ffmpeg encodes 1s lavfi color clip', (t) => {
         assert.ok(fs.statSync(outPath).size > 0);
     } finally {
         fs.unlink(outPath, () => {});
+    }
+});
+
+test('bundled ffmpeg muxes a sibling .tessel-partial.mp4 temp path', (t) => {
+    if (!ffmpegBinary) {
+        t.skip('bundled ffmpeg binary not available on this platform');
+        return;
+    }
+
+    const destPath = path.join(os.tmpdir(), `tessel-partial-dest-${Date.now()}.mp4`);
+    const tempPath = tempOutputPath(destPath);
+    assert.match(tempPath, /\.tessel-partial\.mp4$/);
+    const result = spawnSync(
+        ffmpegBinary,
+        [
+            '-nostdin',
+            '-f', 'lavfi',
+            '-i', 'color=c=green:s=64x64:d=0.2',
+            '-y',
+            '-vcodec', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            '-r', '25',
+            '-an',
+            tempPath,
+        ],
+        { encoding: 'utf8' },
+    );
+
+    try {
+        assert.equal(result.status, 0, result.stderr);
+        assert.ok(fs.statSync(tempPath).size > 0);
+        assert.doesNotMatch(result.stderr, /Unable to choose an output format/);
+    } finally {
+        fs.unlink(tempPath, () => {});
+        fs.unlink(destPath, () => {});
     }
 });
 

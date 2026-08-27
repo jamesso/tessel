@@ -325,7 +325,7 @@ test('encode writes to temp path not destination', async () => {
     await waitUntil(() => encodes.length === 1);
 
     const encodeArgs = spawnCalls.find((args) => !args[1].includes('-hide_banner'))[1];
-    assert.equal(encodeArgs[encodeArgs.length - 1], '/out.mp4.tessel-partial');
+    assert.equal(encodeArgs[encodeArgs.length - 1], '/out.tessel-partial.mp4');
     assert.notEqual(encodeArgs[encodeArgs.length - 1], '/out.mp4');
 });
 
@@ -343,7 +343,7 @@ test('success renames temp to destination without unlinking destination', async 
 
     await waitUntil(() => sent.some((s) => s.channel === 'video:done'));
 
-    assert.deepEqual(calls.renames, [['/out.mp4.tessel-partial', '/out.mp4']]);
+    assert.deepEqual(calls.renames, [['/out.tessel-partial.mp4', '/out.mp4']]);
     assert.ok(!calls.unlinks.includes('/out.mp4'));
 });
 
@@ -355,7 +355,7 @@ test('EXDEV on rename keeps temp and does not unlink destination', async () => {
 
     assert.ok(!sent.some((s) => s.channel === 'video:done'));
     assert.ok(!calls.unlinks.includes('/out.mp4'));
-    assert.ok(!calls.unlinks.includes('/out.mp4.tessel-partial'));
+    assert.ok(!calls.unlinks.includes('/out.tessel-partial.mp4'));
 });
 
 test('EEXIST on rename unlinks destination then succeeds on retry', async () => {
@@ -366,8 +366,8 @@ test('EEXIST on rename unlinks destination then succeeds on retry', async () => 
 
     assert.deepEqual(calls.unlinks, ['/out.mp4']);
     assert.deepEqual(calls.renames, [
-        ['/out.mp4.tessel-partial', '/out.mp4'],
-        ['/out.mp4.tessel-partial', '/out.mp4'],
+        ['/out.tessel-partial.mp4', '/out.mp4'],
+        ['/out.tessel-partial.mp4', '/out.mp4'],
     ]);
 });
 
@@ -379,7 +379,7 @@ test('EEXIST retry failure keeps temp and errors with tessel-partial', async () 
 
     assert.ok(!sent.some((s) => s.channel === 'video:done'));
     assert.deepEqual(calls.unlinks, ['/out.mp4']);
-    assert.ok(!calls.unlinks.includes('/out.mp4.tessel-partial'));
+    assert.ok(!calls.unlinks.includes('/out.tessel-partial.mp4'));
 });
 
 test('cancel unlinks temp only not destination', async () => {
@@ -397,7 +397,7 @@ test('cancel unlinks temp only not destination', async () => {
 
     await waitUntil(() => sent.some((s) => s.channel === 'video:cancelled'));
 
-    assert.deepEqual(calls.unlinks, ['/out.mp4.tessel-partial']);
+    assert.deepEqual(calls.unlinks, ['/out.tessel-partial.mp4']);
     assert.ok(!calls.unlinks.includes('/out.mp4'));
 });
 
@@ -415,7 +415,7 @@ test('encode failure unlinks temp only not destination', async () => {
 
     await waitUntil(() => sent.some((s) => s.channel === 'video:error'));
 
-    assert.deepEqual(calls.unlinks, ['/out.mp4.tessel-partial']);
+    assert.deepEqual(calls.unlinks, ['/out.tessel-partial.mp4']);
     assert.ok(!calls.unlinks.includes('/out.mp4'));
 });
 
@@ -433,7 +433,7 @@ test('pre-existing destination still encodes to temp and renames on success', as
 
     await waitUntil(() => sent.some((s) => s.channel === 'video:done'));
 
-    assert.deepEqual(calls.renames, [['/out.mp4.tessel-partial', '/out.mp4']]);
+    assert.deepEqual(calls.renames, [['/out.tessel-partial.mp4', '/out.mp4']]);
     assert.ok(!calls.unlinks.includes('/out.mp4'));
 });
 
