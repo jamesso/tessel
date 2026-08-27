@@ -77,6 +77,9 @@ test('letterbox default still uses decrease and pad', () => {
 
 test('audio first omits -an and maps 0:a? with apad', () => {
     const { args } = sparseTwoByTwo({ audio: 'first' });
+    assert.equal(args[0], '-nostdin');
+    assert.equal(args[1], '-protocol_whitelist');
+    assert.equal(args[2], 'file,pipe');
     assert.equal(args.includes('-an'), false);
     assert.ok(args.includes('[final]'));
     const mapFlags = args.filter((a, i) => a === '-map');
@@ -89,6 +92,9 @@ test('audio first omits -an and maps 0:a? with apad', () => {
 
 test('audio none keeps -an and does not map audio', () => {
     const { args } = sparseTwoByTwo({ audio: 'none' });
+    assert.equal(args[0], '-nostdin');
+    assert.equal(args[1], '-protocol_whitelist');
+    assert.equal(args[2], 'file,pipe');
     assert.ok(args.includes('-an'));
     assert.equal(args.includes('0:a?'), false);
     assert.equal(args.some((a) => String(a).includes('apad')), false);

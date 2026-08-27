@@ -25,7 +25,8 @@ if (app.isPackaged) {
 }
 
 // Load dependencies
-const ffmpegBinary = require('ffmpeg-static')
+const { resolvePackagedFfmpegPath } = require('./lib/ffmpeg-path')
+const ffmpegBinary = resolvePackagedFfmpegPath(require('ffmpeg-static'))
 const { spawn } = require('child_process')
 const { canSend } = require('./lib/ipc-send')
 const { attachNavigationGuard } = require('./lib/navigation-guard')
