@@ -32,9 +32,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDefaultPath: (type) => {
     return ipcRenderer.invoke('get-default-path', type)
   },
-  
 
-  
+  loadPrefs: () => {
+    return ipcRenderer.invoke('prefs:load')
+  },
+
+  savePrefs: (prefs) => {
+    return ipcRenderer.invoke('prefs:save', prefs)
+  },
+
   // Get file path using webUtils API
   getPathForFile: (file) => {
     try {

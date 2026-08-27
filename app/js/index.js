@@ -35,6 +35,7 @@ function switchGrid(gridType) {
             dz.classList.remove('hidden')
         }
     })
+    persistPrefs()
 }
 
 var vidPath1 = undefined
@@ -47,7 +48,9 @@ var vidPath7 = undefined
 var vidPath8 = undefined
 var vidPath9 = undefined
 var currentGrid = '2x2' // Default grid type
+var lastSaveDir = null
 let converting = false
+let applyingPrefs = false
 
 function getOutputSettings() {
     const resolution = document.getElementById('output-resolution').value.split('x')
@@ -65,6 +68,84 @@ function fileBasename(filePath) {
     }
     const parts = String(filePath).split(/[/\\]/)
     return parts[parts.length - 1] || String(filePath)
+}
+
+function fileDirname(filePath) {
+    if (!filePath) {
+        return null
+    }
+    const s = String(filePath)
+    const idx = Math.max(s.lastIndexOf('/'), s.lastIndexOf('\\'))
+    if (idx <= 0) {
+        return null
+    }
+    return s.slice(0, idx)
+}
+
+function collectSlotPaths() {
+    const paths = []
+    for (let i = 1; i <= 9; i++) {
+        paths.push(window['vidPath' + i] || null)
+    }
+    return paths
+}
+
+function collectPrefs() {
+    const settings = getOutputSettings()
+    return {
+        version: 1,
+        gridType: currentGrid,
+        width: settings.width,
+        height: settings.height,
+        audio: settings.audio,
+        fit: settings.fit,
+        lastSaveDir: lastSaveDir,
+        paths: collectSlotPaths(),
+    }
+}
+
+function persistPrefs() {
+    if (applyingPrefs) {
+        return
+    }
+    if (!window.electronAPI || typeof electronAPI.savePrefs !== 'function') {
+        return
+    }
+    electronAPI.savePrefs(collectPrefs()).catch((err) => {
+        console.error('prefs:save failed:', err)
+    })
+}
+
+function applyPrefs(prefs) {
+    document.getElementById('output-resolution').value = prefs.width + 'x' + prefs.height
+    document.getElementById('output-audio').value = prefs.audio
+    document.getElementById('output-fit').value = prefs.fit
+    lastSaveDir = prefs.lastSaveDir
+    switchGrid(prefs.gridType)
+    const dropzones = document.querySelectorAll('.dropzone')
+    const visibleCount = prefs.gridType === '2x2' ? 4 : 9
+    for (let i = 0; i < visibleCount; i++) {
+        if (prefs.paths[i]) {
+            setSlotOccupied(dropzones[i], prefs.paths[i])
+        } else {
+            clearSlot(dropzones[i], i + 1)
+        }
+    }
+}
+
+async function restorePrefs() {
+    if (!window.electronAPI || typeof electronAPI.loadPrefs !== 'function') {
+        return
+    }
+    applyingPrefs = true
+    try {
+        const prefs = await electronAPI.loadPrefs()
+        applyPrefs(prefs)
+    } catch (err) {
+        console.error('prefs:load failed:', err)
+    } finally {
+        applyingPrefs = false
+    }
 }
 
 function setSlotOccupied(dropzone, filePath) {
@@ -87,6 +168,7 @@ function setSlotOccupied(dropzone, filePath) {
         label.classList.remove('hidden')
     }
     dropzone.draggable = true
+    persistPrefs()
 }
 
 function clearSlot(dropzone, vidNum) {
@@ -108,6 +190,7 @@ function clearSlot(dropzone, vidNum) {
     }
     dropzone.draggable = false
     dropzone.classList.remove('dragging')
+    persistPrefs()
 }
 
 function visibleSlotCount() {
@@ -342,6 +425,9 @@ document.getElementById('convert').addEventListener('click', async (e) => {
             return;
         }
 
+        lastSaveDir = fileDirname(filePath)
+        persistPrefs()
+
         electronAPI.send('video:convert', {
             vidPath1,
             vidPath2,
@@ -452,6 +538,13 @@ document.addEventListener('DOMContentLoaded', () => {
             clearVideo(videoNum)
         })
     })
+
+    const settingIds = ['output-resolution', 'output-audio', 'output-fit']
+    settingIds.forEach((id) => {
+        document.getElementById(id).addEventListener('change', persistPrefs)
+    })
+
+    restorePrefs()
 })
 
 // On clear (logo click)

@@ -31,6 +31,14 @@ const { spawn } = require('child_process')
 const { canSend } = require('./lib/ipc-send')
 const { attachNavigationGuard } = require('./lib/navigation-guard')
 const { createFfmpegSession } = require('./lib/ffmpeg-session')
+const {
+    defaultPrefs,
+    parsePrefsJson,
+    filterMissingPaths,
+    serializePrefs,
+    resolveSaveDefaultPath,
+    prefsFileName,
+} = require('./lib/prefs')
 
 const appHtmlRoot = path.join(__dirname, 'app')
 
@@ -51,6 +59,22 @@ let aboutWindow
 function sendToRenderer(channel, ...args) {
     if (canSend(mainWindow)) {
         mainWindow.webContents.send(channel, ...args)
+    }
+}
+
+function prefsFilePath() {
+    return path.join(app.getPath('userData'), prefsFileName())
+}
+
+function readStoredPrefs() {
+    const file = prefsFilePath()
+    if (!fs.existsSync(file)) {
+        return defaultPrefs()
+    }
+    try {
+        return parsePrefsJson(fs.readFileSync(file, 'utf8'))
+    } catch {
+        return defaultPrefs()
     }
 }
 
@@ -97,9 +121,20 @@ function setupIPC() {
         if (type === 'desktop') {
             return path.join(os.homedir(), 'Desktop')
         } else if (type === 'saveFile') {
-            return path.join(os.homedir(), 'Desktop', `tesselate${Date.now()}.mp4`)
+            const desktop = path.join(os.homedir(), 'Desktop')
+            const lastSaveDir = readStoredPrefs().lastSaveDir
+            return resolveSaveDefaultPath(lastSaveDir, desktop, Date.now(), (p) => fs.existsSync(p))
         }
         return os.homedir()
+    })
+
+    ipcMain.handle('prefs:load', () => {
+        return filterMissingPaths(readStoredPrefs(), (p) => fs.existsSync(p))
+    })
+
+    ipcMain.handle('prefs:save', (event, raw) => {
+        fs.writeFileSync(prefsFilePath(), serializePrefs(raw), 'utf8')
+        return true
     })
 
     ipcMain.handle('app:getVersion', () => app.getVersion())
