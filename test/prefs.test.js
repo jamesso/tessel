@@ -166,6 +166,47 @@ test('filterMissingPaths nulls files the exists helper rejects', () => {
     ]);
 });
 
+test('occupied audio slot is preserved', () => {
+    const got = normalizePrefs({
+        audio: { slot: 2 },
+        paths: [null, null, '/c.mp4'],
+    });
+    assert.deepEqual(got.audio, { slot: 2 });
+});
+
+test('unoccupied chosen audio slot falls back to first', () => {
+    const got = normalizePrefs({
+        audio: { slot: 2 },
+        paths: ['/a.mp4', null, null],
+    });
+    assert.equal(got.audio, 'first');
+});
+
+test('audio slot with no occupied paths falls back to mute', () => {
+    const got = normalizePrefs({ audio: { slot: 2 } });
+    assert.equal(got.audio, 'none');
+});
+
+test('invalid audio slot object falls back to first when a clip exists', () => {
+    const got = normalizePrefs({
+        audio: { slot: 99 },
+        paths: ['/a.mp4'],
+    });
+    assert.equal(got.audio, 'first');
+});
+
+test('filterMissingPaths falls back audio when the chosen file is gone', () => {
+    const filtered = filterMissingPaths(
+        {
+            audio: { slot: 1 },
+            paths: ['/keep.mp4', '/gone.mp4'],
+        },
+        (p) => p === '/keep.mp4',
+    );
+    assert.equal(filtered.paths[1], null);
+    assert.equal(filtered.audio, 'first');
+});
+
 test('serializePrefs writes pretty JSON of normalized prefs', () => {
     const text = serializePrefs({ audio: 'first', extra: 'drop-me' });
     assert.match(text, /\n/);

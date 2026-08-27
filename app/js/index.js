@@ -71,12 +71,86 @@ function getDurationSettings() {
     return { durationMode: 'longest' }
 }
 
+function audioFromSelectValue(value) {
+    if (value === 'first') {
+        return 'first'
+    }
+    const match = /^slot:([0-8])$/.exec(String(value || ''))
+    if (match) {
+        return { slot: Number(match[1]) }
+    }
+    return 'none'
+}
+
+function audioToSelectValue(audio) {
+    if (audio === 'first') {
+        return 'first'
+    }
+    if (audio && typeof audio === 'object') {
+        const slot = Number(audio.slot)
+        if (Number.isInteger(slot) && slot >= 0 && slot <= 8) {
+            return 'slot:' + slot
+        }
+    }
+    return 'none'
+}
+
+function addAudioOption(select, value, label) {
+    const option = document.createElement('option')
+    option.value = value
+    option.textContent = label
+    select.appendChild(option)
+}
+
+function applyAudioSelection(audio) {
+    const select = document.getElementById('output-audio')
+    const preferred = audioToSelectValue(audio)
+    const values = Array.from(select.options).map(function (opt) {
+        return opt.value
+    })
+    if (values.indexOf(preferred) !== -1) {
+        select.value = preferred
+        return
+    }
+    if (values.indexOf('first') !== -1) {
+        select.value = 'first'
+        return
+    }
+    select.value = 'none'
+}
+
+function refreshAudioOptions() {
+    const select = document.getElementById('output-audio')
+    if (!select) {
+        return
+    }
+    const previous = audioFromSelectValue(select.value)
+    const paths = collectSlotPaths()
+    const visible = visibleSlotCount()
+    const occupied = []
+    for (let i = 0; i < visible; i++) {
+        if (paths[i]) {
+            occupied.push(i)
+        }
+    }
+
+    select.innerHTML = ''
+    addAudioOption(select, 'none', 'Mute')
+    if (occupied.length > 0) {
+        addAudioOption(select, 'first', 'First clip')
+        occupied.forEach(function (slot) {
+            addAudioOption(select, 'slot:' + slot, fileBasename(paths[slot]))
+        })
+    }
+    applyAudioSelection(previous)
+}
+
 function getOutputSettings() {
     const resolution = document.getElementById('output-resolution').value.split('x')
     return {
         width: Number(resolution[0]),
         height: Number(resolution[1]),
-        audio: document.getElementById('output-audio').value,
+        audio: audioFromSelectValue(document.getElementById('output-audio').value),
         fit: document.getElementById('output-fit').value,
         ...getDurationSettings(),
     }
@@ -140,7 +214,6 @@ function persistPrefs() {
 
 function applyPrefs(prefs, options) {
     document.getElementById('output-resolution').value = prefs.width + 'x' + prefs.height
-    document.getElementById('output-audio').value = prefs.audio
     document.getElementById('output-fit').value = prefs.fit
     const durationSelect = document.getElementById('output-duration')
     if (prefs.durationMode === 'seconds' && (prefs.seconds === 5 || prefs.seconds === 15 || prefs.seconds === 30 || prefs.seconds === 60)) {
@@ -152,19 +225,20 @@ function applyPrefs(prefs, options) {
     const applyGrid = options && options.applyGrid === true
         ? true
         : shouldRestoreGridAndPaths(userTouchedGrid)
-    if (!applyGrid) {
-        return
-    }
-    switchGrid(prefs.gridType)
-    const dropzones = document.querySelectorAll('.dropzone')
-    const visibleCount = prefs.gridType === '2x2' ? 4 : 9
-    for (let i = 0; i < visibleCount; i++) {
-        if (prefs.paths[i]) {
-            setSlotOccupied(dropzones[i], prefs.paths[i])
-        } else {
-            clearSlot(dropzones[i], i + 1)
+    if (applyGrid) {
+        switchGrid(prefs.gridType)
+        const dropzones = document.querySelectorAll('.dropzone')
+        const visibleCount = prefs.gridType === '2x2' ? 4 : 9
+        for (let i = 0; i < visibleCount; i++) {
+            if (prefs.paths[i]) {
+                setSlotOccupied(dropzones[i], prefs.paths[i])
+            } else {
+                clearSlot(dropzones[i], i + 1)
+            }
         }
     }
+    refreshAudioOptions()
+    applyAudioSelection(prefs.audio)
 }
 
 async function restorePrefs() {
@@ -210,6 +284,7 @@ function setSlotOccupied(dropzone, filePath) {
         window.showCellPreview(preview, filePath)
     }
     dropzone.draggable = true
+    refreshAudioOptions()
     persistPrefs()
 }
 
@@ -237,6 +312,7 @@ function clearSlot(dropzone, vidNum) {
     }
     dropzone.draggable = false
     dropzone.classList.remove('dragging')
+    refreshAudioOptions()
     persistPrefs()
 }
 
