@@ -24,6 +24,60 @@ test('selectSlotPaths uses four slots for 2x2 and nine for 3x3', () => {
     assert.deepEqual(threeByThree, ninePaths);
 });
 
+test('buildVideoInfo assigns inputIndex by first-seen unique path', () => {
+    const videoInfo = buildVideoInfo(
+        ['/a.mp4', '/b.mp4', '/a.mp4', null],
+        { '/a.mp4': 10, '/b.mp4': 10 },
+        10,
+    );
+    assert.equal(videoInfo[0].inputIndex, 0);
+    assert.equal(videoInfo[1].inputIndex, 1);
+    assert.equal(videoInfo[2].inputIndex, 0);
+    assert.equal(videoInfo[3].inputIndex, -1);
+});
+
+test('3x3 nine copies of one path use one -i and split=9', () => {
+    const longestDuration = 10;
+    const slotPaths = Array(9).fill('/a.mp4');
+    const videoDurations = { '/a.mp4': 10 };
+    const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
+    const { blockWidth, blockHeight } = gridMetrics('3x3');
+    const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
+    const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, '/out.mp4');
+
+    assert.equal(args.filter(a => a === '-i').length, 1);
+    assert.match(filterComplex, /split=9/);
+    assert.match(filterComplex, /xstack=inputs=9/);
+});
+
+test('2x2 two occupied cells with same path use one -i and split=2', () => {
+    const longestDuration = 10;
+    const slotPaths = ['/a.mp4', null, null, '/a.mp4'];
+    const videoDurations = { '/a.mp4': 10 };
+    const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
+    const { blockWidth, blockHeight } = gridMetrics('2x2');
+    const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
+    const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, '/out.mp4');
+
+    assert.equal(args.filter(a => a === '-i').length, 1);
+    assert.match(filterComplex, /split=2/);
+    assert.match(filterComplex, /xstack=inputs=2/);
+});
+
+test('3x3 nine distinct paths use nine -i and no split', () => {
+    const longestDuration = 10;
+    const slotPaths = ninePaths;
+    const videoDurations = Object.fromEntries(ninePaths.map(p => [p, 10]));
+    const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
+    const { blockWidth, blockHeight } = gridMetrics('3x3');
+    const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
+    const args = buildFfmpegArgs(videoInfo, filterComplex, longestDuration, '/out.mp4');
+
+    assert.equal(args.filter(a => a === '-i').length, 9);
+    assert.doesNotMatch(filterComplex, /split=/);
+    assert.match(filterComplex, /xstack=inputs=9/);
+});
+
 test('sparse 2x2 filter and args contract', () => {
     const originalPaths = ['/only.mp4', null, null, null, null, null, null, null, null];
     const slotPaths = selectSlotPaths(originalPaths, '2x2');
@@ -38,6 +92,8 @@ test('sparse 2x2 filter and args contract', () => {
     assert.equal(colorSources.length, 1);
     assert.match(filterComplex, /color=black:size=1280x720/);
     assert.doesNotMatch(filterComplex, /color=black:size=640x360/);
+    assert.equal(args.filter(a => a === '-i').length, 1);
+    assert.doesNotMatch(filterComplex, /split=/);
     assert.doesNotMatch(filterComplex, /xstack/);
     assert.match(filterComplex, /\[canvas\]\[block0\]overlay=x=0:y=0\[final\]/);
     assert.match(filterComplex, /force_original_aspect_ratio=decrease/);
