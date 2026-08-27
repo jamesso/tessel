@@ -74,6 +74,8 @@ test('letterbox default still uses decrease and pad', () => {
     assert.match(filterComplex, new RegExp(`pad=${blockWidth}:${blockHeight}`));
     assert.doesNotMatch(filterComplex, /force_original_aspect_ratio=increase/);
     assert.doesNotMatch(filterComplex, /crop=/);
+    assert.doesNotMatch(filterComplex, /xstack/);
+    assert.match(filterComplex, /\[canvas\]\[block0\]overlay=x=0:y=0\[final\]/);
 });
 
 test('audio first omits -an and maps 0:a? with apad', () => {

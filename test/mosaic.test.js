@@ -38,6 +38,8 @@ test('sparse 2x2 filter and args contract', () => {
     assert.equal(colorSources.length, 1);
     assert.match(filterComplex, /color=black:size=1280x720/);
     assert.doesNotMatch(filterComplex, /color=black:size=640x360/);
+    assert.doesNotMatch(filterComplex, /xstack/);
+    assert.match(filterComplex, /\[canvas\]\[block0\]overlay=x=0:y=0\[final\]/);
     assert.match(filterComplex, /force_original_aspect_ratio=decrease/);
     assert.match(filterComplex, /pad=/);
     assert.match(filterComplex, /\[final\]/);
@@ -59,6 +61,19 @@ test('sparse 2x2 filter and args contract', () => {
     assert.equal(args[vcodecIndex + 5], '-pix_fmt');
     assert.equal(args[vcodecIndex + 6], 'yuv420p');
     assert.equal(args[args.indexOf('-fps_mode') + 1], 'cfr');
+});
+
+test('two occupied 2x2 cells use xstack inputs=2', () => {
+    const { blockWidth, blockHeight } = gridMetrics('2x2');
+    const longestDuration = 10;
+    const slotPaths = ['/a.mp4', '/b.mp4', null, null];
+    const videoDurations = { '/a.mp4': 10, '/b.mp4': 10 };
+    const videoInfo = buildVideoInfo(slotPaths, videoDurations, longestDuration);
+    const filterComplex = buildFilterComplex(videoInfo, longestDuration, blockWidth, blockHeight);
+
+    assert.match(filterComplex, /xstack=inputs=2:fill=black:layout=0_0\|640_0/);
+    assert.match(filterComplex, /\[canvas\]\[stacked\]overlay=x=0:y=0\[final\]/);
+    assert.doesNotMatch(filterComplex, /mosaic\d/);
 });
 
 test('full 2x2 occupied cells letterbox each video', () => {
