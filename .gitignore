@@ -52,6 +52,9 @@ bower_components
 build/Release
 release-builds
 
+# Bundled FFmpeg binaries (downloaded by scripts/install-ffmpeg.js)
+vendor/ffmpeg/
+
 # Dependency directories
 node_modules/
 jspm_packages/

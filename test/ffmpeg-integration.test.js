@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const ffmpegBinary = require('ffmpeg-static');
+const ffmpegBinary = require('../lib/ffmpeg-binary');
 const {
     gridMetrics,
     buildVideoInfo,
@@ -15,7 +15,7 @@ const {
 
 test('bundled ffmpeg encodes 1s lavfi color clip', (t) => {
     if (!ffmpegBinary) {
-        t.skip('ffmpeg-static binary not available on this platform');
+        t.skip('bundled ffmpeg binary not available on this platform');
         return;
     }
 
@@ -48,7 +48,7 @@ test('bundled ffmpeg encodes 1s lavfi color clip', (t) => {
 
 test('duplicate-path mosaic graph encodes with bundled ffmpeg', (t) => {
     if (!ffmpegBinary) {
-        t.skip('ffmpeg-static binary not available on this platform');
+        t.skip('bundled ffmpeg binary not available on this platform');
         return;
     }
 
@@ -96,7 +96,7 @@ test('duplicate-path mosaic graph encodes with bundled ffmpeg', (t) => {
 
 test('one-cell mosaic graph encodes with bundled ffmpeg', (t) => {
     if (!ffmpegBinary) {
-        t.skip('ffmpeg-static binary not available on this platform');
+        t.skip('bundled ffmpeg binary not available on this platform');
         return;
     }
 

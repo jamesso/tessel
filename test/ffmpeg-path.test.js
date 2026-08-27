@@ -8,24 +8,24 @@ test('FFMPEG_PROTOCOL_WHITELIST is file,pipe', () => {
 });
 
 test('resolvePackagedFfmpegPath rewrites app.asar to app.asar.unpacked', () => {
-    const asarPath = `/App/Contents/Resources/app.asar/node_modules/ffmpeg-static/ffmpeg`;
-    const expected = `/App/Contents/Resources/app.asar.unpacked/node_modules/ffmpeg-static/ffmpeg`;
+    const asarPath = `/App/Contents/Resources/app.asar/vendor/ffmpeg/ffmpeg`;
+    const expected = `/App/Contents/Resources/app.asar.unpacked/vendor/ffmpeg/ffmpeg`;
     assert.equal(resolvePackagedFfmpegPath(asarPath), expected);
 });
 
 test('resolvePackagedFfmpegPath leaves app.asar.unpacked paths unchanged', () => {
-    const unpackedPath = `/App/Contents/Resources/app.asar.unpacked/node_modules/ffmpeg-static/ffmpeg`;
+    const unpackedPath = `/App/Contents/Resources/app.asar.unpacked/vendor/ffmpeg/ffmpeg`;
     assert.equal(resolvePackagedFfmpegPath(unpackedPath), unpackedPath);
 });
 
 test('resolvePackagedFfmpegPath leaves unpackaged dev paths unchanged', () => {
-    const devPath = `/Users/me/tessel/node_modules/ffmpeg-static/ffmpeg`;
+    const devPath = `/Users/me/tessel/vendor/ffmpeg/ffmpeg`;
     assert.equal(resolvePackagedFfmpegPath(devPath), devPath);
 });
 
 test('resolvePackagedFfmpegPath rewrites Windows-style app.asar segments', () => {
-    const asarPath = `C:\\Program Files\\Tessel\\resources\\app.asar\\node_modules\\ffmpeg-static\\ffmpeg.exe`;
-    const expected = `C:\\Program Files\\Tessel\\resources\\app.asar.unpacked\\node_modules\\ffmpeg-static\\ffmpeg.exe`;
+    const asarPath = `C:\\Program Files\\Tessel\\resources\\app.asar\\vendor\\ffmpeg\\ffmpeg.exe`;
+    const expected = `C:\\Program Files\\Tessel\\resources\\app.asar.unpacked\\vendor\\ffmpeg\\ffmpeg.exe`;
     assert.equal(resolvePackagedFfmpegPath(asarPath), expected);
 });
 

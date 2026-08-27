@@ -1,5 +1,8 @@
 # Plan 026: FFmpeg migration notes
 
+> **Superseded by plan 051** for the bundled FFmpeg version and install path.
+> This file records the 026 migration from `@ffmpeg-installer/ffmpeg` only.
+
 ## Replacement
 
 | Field | Value |

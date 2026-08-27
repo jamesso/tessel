@@ -54,7 +54,7 @@ const packagerOptions = {
     name: appName,
     overwrite: true,
     asar: {
-        unpackDir: 'node_modules/ffmpeg-static',
+        unpackDir: 'vendor/ffmpeg',
     },
     platform: target.platform,
     arch: target.arch,

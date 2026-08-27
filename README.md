@@ -92,7 +92,7 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 ## Technical Details
 
 - **Built with**: Electron 44.x
-- **Video Processing**: Bundled FFmpeg 6.x (`ffmpeg-static`) via spawn (`-nostdin`)
+- **Video Processing**: Bundled FFmpeg 7.1 (hash-pinned GPL static builds) via spawn (`-nostdin`)
 - **Architecture**: Context isolation, sandboxed preload (no Node `require` of app modules), asar package with ffmpeg unpacked
 - **Output Format**: MP4, H.264 (`veryfast`), 25 fps, yuv420p
 - **Resolution**: 1280×720 or 1920×1080 (selectable)
@@ -179,8 +179,9 @@ tessel/
 
 Tessel application source code is licensed under the [MIT License](LICENSE).
 
-Release builds bundle a copy of [FFmpeg](https://ffmpeg.org/) from the
-`ffmpeg-static` npm package. That binary is **not** MIT-licensed; see
+Release builds bundle a copy of [FFmpeg](https://ffmpeg.org/) downloaded at
+`npm install` from pinned vendor archives (see `scripts/ffmpeg-hashes.json`).
+That binary is **not** MIT-licensed; see
 [NOTICE](NOTICE) for the MIT/GPL split and where to find FFmpeg's license text.
 
 ## Acknowledgments
