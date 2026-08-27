@@ -306,3 +306,70 @@ test('pre-existing destination still encodes to temp and renames on success', as
     assert.deepEqual(calls.renames, [['/out.mp4.tessel-partial', '/out.mp4']]);
     assert.ok(!calls.unlinks.includes('/out.mp4'));
 });
+
+test('stale encode close after cancel-then-convert does not error or clear the new job', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const { session, sent } = createSession(spawn);
+
+    session.convertVideo(defaultConvertPayload({ vidPath1: '/a.mp4' }));
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+
+    session.killActiveFfmpeg({ notify: 'cancelled' });
+    await waitUntil(() => sent.some((s) => s.channel === 'video:cancelled'));
+
+    const eventsBeforeB = sent.length;
+    session.convertVideo(defaultConvertPayload({ vidPath1: '/b.mp4' }));
+    await waitUntil(() => probes.length === 2);
+    probes[1].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 2);
+
+    encodes[0].emit('close', 1);
+
+    await new Promise((r) => setImmediate(r));
+
+    const newEvents = sent.slice(eventsBeforeB);
+    assert.ok(!newEvents.some((s) => s.channel === 'video:error' && /Conversion failed/.test(s.args[0])));
+    assert.ok(!newEvents.some((s) => s.channel === 'video:done'));
+    assert.equal(session.isBusy(), true);
+
+    encodes[1].emit('close', 0);
+    await waitUntil(() => sent.filter((s) => s.channel === 'video:done').length === 1);
+    assert.equal(session.isBusy(), false);
+});
+
+test('cancel during probe does not send duration error when probe closes', async () => {
+    const { spawn, probes } = createSpawnFake();
+    const { session, sent } = createSession(spawn);
+
+    session.convertVideo(defaultConvertPayload());
+    await waitUntil(() => probes.length === 1);
+
+    session.killActiveFfmpeg({ notify: 'cancelled' });
+    probes[0].emit('close', 1);
+
+    await new Promise((r) => setImmediate(r));
+
+    assert.ok(!sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Could not read video duration'));
+});
+
+test('stale probe close after cancel-then-convert does not clear the new job', async () => {
+    const { spawn, probes } = createSpawnFake();
+    const { session, sent } = createSession(spawn);
+
+    session.convertVideo(defaultConvertPayload({ vidPath1: '/a.mp4' }));
+    await waitUntil(() => probes.length === 1);
+
+    session.killActiveFfmpeg({ notify: 'cancelled' });
+
+    session.convertVideo(defaultConvertPayload({ vidPath1: '/b.mp4' }));
+    await waitUntil(() => probes.length === 2);
+
+    probes[0].emit('close', 1);
+
+    await new Promise((r) => setImmediate(r));
+
+    assert.ok(!sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Could not read video duration'));
+    assert.equal(session.isBusy(), true);
+});
