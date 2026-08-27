@@ -25,7 +25,8 @@ if (app.isPackaged) {
 }
 
 // Load dependencies
-const ffmpegBinary = require('ffmpeg-static')
+const { resolvePackagedFfmpegPath, FFMPEG_PROTOCOL_WHITELIST } = require('./lib/ffmpeg-path')
+const ffmpegBinary = resolvePackagedFfmpegPath(require('ffmpeg-static'))
 const { spawn } = require('child_process')
 const {
     matchDurationInStderr,
@@ -281,7 +282,7 @@ function getVideoDurationWithFFmpeg(videoPath) {
 
         debugLog('Getting duration with ffmpeg for:', videoPath)
 
-        const args = ['-nostdin', '-hide_banner', '-i', videoPath]
+        const args = ['-nostdin', '-protocol_whitelist', FFMPEG_PROTOCOL_WHITELIST, '-hide_banner', '-i', videoPath]
         const ffmpegProcess = spawn(ffmpegBinary, args)
         liveProbeProcesses.add(ffmpegProcess)
 
