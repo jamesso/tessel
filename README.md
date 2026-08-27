@@ -124,8 +124,10 @@ For **production / distributable** binaries, use the packager scripts in [Buildi
 ### Cutting a GitHub Release
 
 1. Bump `"version"` in `package.json` (and `package-lock.json`). The About page reads `app.getVersion()`, so it matches that bump.
-2. Push the commit to `master` or `main`. CI creates a GitHub Release when the version changes — releases are published from **push**, not from pull requests.
+2. Push the commit to `master` or `main`. CI creates a GitHub Release when `package.json`’s version has no existing `v$version` release yet — releases are published from **push**, not from pull requests.
 3. CI builds macOS, Linux, and Windows assets and uploads them to the [Releases page](https://github.com/jamesso/tessel/releases).
+
+**workflow_dispatch** on the release workflow runs the same packager matrix and uploads build artifacts for smoke-testing; it does **not** create a GitHub Release.
 
 Local `npm run package-*` commands produce **unsigned** binaries in `release-builds/` only (gitignored). Use them to smoke-test packaging; they are not uploaded automatically.
 

@@ -33,26 +33,25 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 2
+        fetch-depth: 0
+        fetch-tags: true
     
     - name: Get current version
       id: get-version
       run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
     
-    - name: Check if version changed
+    - name: Check if version needs release
       id: check
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        if git diff HEAD~1 HEAD --name-only | grep -q "package.json"; then
-          if git diff HEAD~1 HEAD package.json | grep -q '"version"'; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Version changed in package.json"
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "package.json changed but version did not"
-          fi
-        else
+        VERSION="${{ steps.get-version.outputs.version }}"
+        if gh release view "v${VERSION}" >/dev/null 2>&1; then
           echo "changed=false" >> $GITHUB_OUTPUT
-          echo "package.json not changed"
+          echo "Release v${VERSION} already exists"
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "No GitHub Release for v${VERSION} yet"
         fi
 
   build:
@@ -131,7 +130,7 @@ jobs:
 
   release:
     needs: [check-version, build]
-    if: (github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true') || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write

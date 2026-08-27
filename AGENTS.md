@@ -22,5 +22,5 @@ Pass this rule to any sub-agents you spawn.
 - **Test**: `npm test` (`node --test test/`).
 - **Dev**: `npm run dev` (nodemon + unpackaged Electron) or `npm start` (unpackaged Electron once).
 - **Packaging**: `npm run package-mac`, `package-win`, or `package-linux` produce distributable binaries in `release-builds/`. These are **not** what `npm start` runs.
-- **GitHub Release**: bump `"version"` in `package.json` and **push** to `master` or `main`. CI publishes releases on version bump (see plan 005); PRs do not release.
+- **GitHub Release**: bump `"version"` in `package.json` and **push** to `master` or `main`. CI publishes a GitHub Release when that version has no existing `v$version` tag yet (see plans 005, 047); PRs do not release. **workflow_dispatch** on the release workflow only runs the packager matrix and uploads artifacts — it does not run `gh release create`.
 - **Git hooks**: `npm install` runs `prepare`, which sets `git config core.hooksPath scripts/githooks` (local to the repo). You can also run that `git config` command manually. The `commit-msg` hook requires **`python3`** on your PATH. Do **not** disable or bypass the hook (`--no-verify`, removing `core.hooksPath`, etc.).
