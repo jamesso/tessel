@@ -27,7 +27,7 @@ A modern desktop application for creating stunning mosaic videos. Combine multip
 - **Flexible Input**: Works with 1–9 videos (empty slots filled with black)
 - **Drag & Drop**: Drop one file to fill or replace a slot, or drop several to fill from that cell
 - **Clip names**: Filled cells show the file name so you can tell clips apart
-- **Output settings**: Choose 1280×720 or 1920×1080, mute or use audio from the first occupied cell (grid order), and letterbox or crop each cell
+- **Output settings**: Choose 1280×720 or 1920×1080, mute or pick which occupied cell supplies audio, and letterbox or crop each cell
 - **Duration**: Full length (pad shorter clips to the longest) or cap output at 5, 15, 30, or 60 seconds from the start
 - **Session restore**: On launch, restores output settings, the last save folder, and occupied cells when those files still exist (missing files are skipped; no import button)
 - **Rearrange clips**: Drag a filled cell onto another filled cell to swap, or onto an empty cell to move
@@ -73,7 +73,7 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 2. **Add Videos**:
    - Drag and drop onto a cell (one file replaces that slot; several fill consecutive empty slots)
    - Or click a cell to browse (MP4, MOV, M4V, WebM, AVI, MKV)
-3. **Output settings**: Pick resolution, duration (full length or a 5/15/30/60s cap), whether to mute or use the first occupied cell’s audio (grid order), and letterbox vs crop
+3. **Output settings**: Pick resolution, duration (full length or a 5/15/30/60s cap), whether to mute or use a chosen occupied cell’s audio, and letterbox vs crop
 4. **Rearrange**: Drag a filled cell onto another to swap clips, or onto an empty cell to move
 5. **Convert**: Click Convert and choose where to save the mosaic
 6. **Progress**: Watch the percentage. Cancel if you need to stop. On success the grid stays filled so you can export again

@@ -117,12 +117,12 @@ Verification: `npm test` → exit 0.
 
 ## Done criteria
 
-- [ ] `## Spike result` names UI + IPC
-- [ ] Mute remains default
-- [ ] User can encode using a non-first occupied cell’s audio
-- [ ] Mix-all not implemented
-- [ ] `npm test` exits 0
-- [ ] `plans/README.md` 059 DONE
+- [x] `## Spike result` names UI + IPC
+- [x] Mute remains default
+- [x] User can encode using a non-first occupied cell’s audio
+- [x] Mix-all not implemented
+- [x] `npm test` exits 0
+- [x] `plans/README.md` 059 DONE
 
 ## STOP conditions
 
@@ -132,7 +132,13 @@ Verification: `npm test` → exit 0.
 
 ## Spike result
 
-_(executor fills)_
+**UI:** Footer `#output-audio` `<select>`: Mute, First clip (lowest occupied slot), then occupied cells listed by filename. A closed native select does not grow the 450×600 footer; extra options overlay, so a per-cell speaker toggle was not needed.
+
+**IPC / prefs:** `audio` is `'none' | 'first' | { slot: 0-8 }`. `getOutputSettings()` sends that shape on `video:convert`. Select values are `none`, `first`, and `slot:N`.
+
+**Mapping:** After 049, `-map ${inputIndex}:a?`. Two distinct files in slots 0 and 1 with `{ slot: 1 }` produces `1:a?` (that cell’s unique input), not `0:a?`. Keep `apad` + `-t`. Encode of two lavfi clips with sine audio succeeded; probe still shows an Audio stream and sub-second Duration.
+
+**Fallback:** Invalid or unoccupied `{ slot }` → `first` (lowest occupied). If that cell is empty at convert, `buildFfmpegArgs` uses `firstReal`, then `-an` only when audio is `none`. Clearing the chosen cell in the UI falls back to First clip if any occupied cells remain, else Mute. Saved `first` still means lowest occupied slot.
 
 ## Maintenance notes
 
