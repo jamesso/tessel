@@ -51,7 +51,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 039 | Nodemon restart on HTML/CSS | P3 | S | — | DONE |
 | 040 | Remember settings, save folder, and grid | P2 | M | — | TODO |
 | 041 | Duration cap (spike, then one footer control) | P2 | M | — | TODO |
-| 042 | Swap or move clips between cells | P2 | S | — | TODO |
+| 042 | Swap or move clips between cells | P2 | S | — | DONE |
 | 043 | Spike in-cell previews (abort if stutter) | P3 | M | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
