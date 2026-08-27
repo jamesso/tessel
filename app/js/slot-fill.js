@@ -28,6 +28,27 @@
         return assigned;
     }
 
+    function swapOrMove(paths, fromIndex, toIndex) {
+        const next = paths.slice();
+        if (fromIndex === toIndex) {
+            return next;
+        }
+        if (fromIndex < 0 || toIndex < 0 || fromIndex >= next.length || toIndex >= next.length) {
+            return next;
+        }
+        if (!next[fromIndex]) {
+            return next;
+        }
+        const fromVal = next[fromIndex];
+        next[fromIndex] = next[toIndex];
+        next[toIndex] = fromVal;
+        return next;
+    }
+
     root.nextEmptySlots = nextEmptySlots;
     root.assignDrops = assignDrops;
-})(typeof window !== 'undefined' ? window : this);
+    root.swapOrMove = swapOrMove;
+    if (typeof module === 'object' && module.exports) {
+        module.exports = { nextEmptySlots, assignDrops, swapOrMove };
+    }
+})(typeof window !== 'undefined' ? window : globalThis);

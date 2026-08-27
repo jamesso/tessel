@@ -99,8 +99,12 @@ main {
     justify-content: center;
     position: relative;
 }
-.dropzone:hover, .dropzone.hover {
+.dropzone:hover, .dropzone.hover, .dropzone.drop-target {
     border: 2px solid #fff;
+}
+.dropzone.dragging {
+    opacity: 0.55;
+    border: 2px dashed #fff;
 }
 body .copy {
     cursor: copy;
