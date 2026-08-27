@@ -1,0 +1,4 @@
+{
+  "ext": "js,json,html,css",
+  "ignore": ["test/**", "plans/**", "release-builds/**", "node_modules/**"]
+}

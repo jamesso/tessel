@@ -1,0 +1,30 @@
+Third-Party Notices
+===================
+
+Tessel application
+------------------
+
+The Tessel application source code is licensed under the MIT License. See the
+[LICENSE](LICENSE) file in this repository.
+
+Bundled FFmpeg
+--------------
+
+Release builds of Tessel include a copy of FFmpeg from the `ffmpeg-static` npm
+package. That package is licensed under GPL-3.0-or-later. The bundled binary is
+an FFmpeg 6.x build configured with GPL and nonfree components (including
+libx264).
+
+After `npm install`, FFmpeg's license text is available at:
+
+  node_modules/ffmpeg-static/ffmpeg.LICENSE
+
+For general information about FFmpeg licensing, see:
+
+  https://ffmpeg.org/legal.html
+
+Disclaimer
+----------
+
+This NOTICE is provided for transparency and is not legal advice. Consult
+appropriate counsel for redistribution requirements.

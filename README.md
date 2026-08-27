@@ -109,7 +109,7 @@ cd tessel
 # Install dependencies (also runs prepare → sets git hooksPath to scripts/githooks)
 npm install
 
-# Run in development mode (nodemon + Electron; restarts on file changes)
+# Run in development mode (nodemon + Electron; restarts on .js, .json, .html, and .css changes; ignores test/). Developer → Reload is also available when running unpackaged.
 npm run dev
 
 # Run the app once without nodemon (unpackaged Electron — not a distributable build)
@@ -169,7 +169,11 @@ tessel/
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Tessel application source code is licensed under the [MIT License](LICENSE).
+
+Release builds bundle a copy of [FFmpeg](https://ffmpeg.org/) from the
+`ffmpeg-static` npm package. That binary is **not** MIT-licensed; see
+[NOTICE](NOTICE) for the MIT/GPL split and where to find FFmpeg's license text.
 
 ## Acknowledgments
 

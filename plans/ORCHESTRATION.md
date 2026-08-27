@@ -1,6 +1,13 @@
+# Historical — waves 0–5 complete
+
+**Do not dispatch these plans.** Status lives in `plans/README.md`.
+Plans 001–026 are DONE. This ledger is not the execution queue.
+
+---
+
 # Plans 1–26 orchestration ledger
 
-Controller: Grok 4.6 (this session). Implementers: Jean Cursor sessions.
+Controller: Grok 4.6 (original session). Implementers: Jean Cursor sessions.
 - Backend / heavy: `cursor/composer-2.5` (not fast)
 - Frontend / visual: `cursor/cursor-grok-4.6-xhigh`
 - Merge target: local `master` after review. Do not push unless operator asks.
@@ -22,9 +29,8 @@ Jean project: `734770a2-d62d-4025-accb-19b833a60441` (tessel)
 
 | Plan | Status | Worktree | Session | Branch | Notes |
 |------|--------|----------|---------|--------|-------|
-| 001 | IN PROGRESS | | | | Wave 0 |
-| 002–026 | TODO | | | | |
+| 001–026 | DONE | | | | Waves 0–5 complete |
 
 ## Merge log
 
-(empty)
+All waves merged to `master` by 2026-08-26. See `plans/README.md` for per-plan notes.
