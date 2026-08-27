@@ -8,6 +8,7 @@ const {
     filterMissingPaths,
     serializePrefs,
     resolveSaveDefaultPath,
+    shouldRestoreGridAndPaths,
 } = require('../lib/prefs');
 
 const defaults = {
@@ -188,4 +189,16 @@ test('resolveSaveDefaultPath falls back to Desktop when lastSaveDir is null', ()
     const desktop = path.join('/Users/me', 'Desktop');
     const got = resolveSaveDefaultPath(null, desktop, 7, () => true);
     assert.equal(got, path.join(desktop, 'tesselate7.mp4'));
+});
+
+test('shouldRestoreGridAndPaths is true when the user has not touched the grid', () => {
+    assert.equal(shouldRestoreGridAndPaths(false), true);
+});
+
+test('shouldRestoreGridAndPaths is false after the user touched the grid', () => {
+    assert.equal(shouldRestoreGridAndPaths(true), false);
+});
+
+test('shouldRestoreGridAndPaths is true when the flag is undefined', () => {
+    assert.equal(shouldRestoreGridAndPaths(undefined), true);
 });

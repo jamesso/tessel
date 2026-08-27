@@ -61,7 +61,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 047 | Pack on dispatch; publish only when a new version is pushed | P2 | S | — | TODO |
 | 048 | Document duration cap, restore, swap, and cell previews | P2 | S | — | TODO |
 | 049 | One `-i` per unique path, then `split` | P2 | M | 044 | TODO |
-| 050 | Do not let prefs restore clobber a drop during launch | P2 | S | — | TODO |
+| 050 | Do not let prefs restore clobber a drop during launch | P2 | S | — | DONE |
 | 051 | Ship one supported FFmpeg version on every packager platform | P3 | L | 044 (049 preferred) | TODO |
 | 052 | Flip packaged Electron fuses off insecure defaults | P3 | M | — | TODO |
 | 053 | Load slot-fill and media-accept from one UMD file each | P3 | S | — (before 060) | TODO |
