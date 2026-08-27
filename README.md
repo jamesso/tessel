@@ -29,7 +29,8 @@ A modern desktop application for creating stunning mosaic videos. Combine multip
 - **Clip names**: Filled cells show the file name so you can tell clips apart
 - **Output settings**: Choose 1280×720 or 1920×1080, mute or use audio from the first occupied cell (grid order), and letterbox or crop each cell
 - **Duration**: Full length (pad shorter clips to the longest) or cap output at 5, 15, 30, or 60 seconds from the start
-- **Session restore**: On launch, restores output settings, the last save folder, and occupied cells when those files still exist (missing files are skipped; no import button)
+- **Session restore**: On launch, restores output settings, the last save folder, and occupied cells when those files still exist (missing files are skipped)
+- **Import / Export layout**: File → Export layout… / Import layout… writes or loads the current mosaic as JSON. Clip paths in that file are absolute; files that are not on this computer are skipped and those cells stay empty
 - **Rearrange clips**: Drag a filled cell onto another filled cell to swap, or onto an empty cell to copy (the source stays filled)
 - **Cell previews**: Filled cells show a muted first-frame thumbnail; filenames stay visible
 - **Convert session**: Live progress, cancel an in-progress encode, and keep the grid after success so you can tweak and export again
@@ -78,6 +79,7 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 5. **Convert**: Click Convert and choose where to save the mosaic
 6. **Progress**: Watch the percentage. Cancel if you need to stop. On success the grid stays filled so you can export again
 7. **Restore**: Quit and reopen Tessel — output settings and occupied cells come back when the source files are still on disk
+8. **Import / Export layout**: File → Export layout… saves the current grid (including unsaved drops) to JSON. File → Import layout… loads it. Paths are absolute; missing files are skipped
 
 ### Supported Video Formats
 

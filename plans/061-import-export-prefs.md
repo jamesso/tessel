@@ -97,13 +97,13 @@ Verification: `npm test` → exit 0.
 
 ## Done criteria
 
-- [ ] File menu can export and import JSON
-- [ ] Import uses `filterMissingPaths`
-- [ ] User is told paths are absolute / machine-local
-- [ ] Bad JSON does not clear the live grid
-- [ ] `npm test` exits 0
-- [ ] No files outside the in-scope list are modified
-- [ ] `plans/README.md` 061 DONE
+- [x] File menu can export and import JSON
+- [x] Import uses `filterMissingPaths`
+- [x] User is told paths are absolute / machine-local
+- [x] Bad JSON does not clear the live grid
+- [x] `npm test` exits 0
+- [x] No files outside the in-scope list are modified
+- [x] `plans/README.md` 061 DONE
 
 ## STOP conditions
 
