@@ -33,26 +33,25 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 2
+        fetch-depth: 0
+        fetch-tags: true
     
     - name: Get current version
       id: get-version
       run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
     
-    - name: Check if version changed
+    - name: Check if version needs release
       id: check
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        if git diff HEAD~1 HEAD --name-only | grep -q "package.json"; then
-          if git diff HEAD~1 HEAD package.json | grep -q '"version"'; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Version changed in package.json"
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "package.json changed but version did not"
-          fi
-        else
+        VERSION="${{ steps.get-version.outputs.version }}"
+        if gh release view "v${VERSION}" >/dev/null 2>&1; then
           echo "changed=false" >> $GITHUB_OUTPUT
-          echo "package.json not changed"
+          echo "Release v${VERSION} already exists"
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "No GitHub Release for v${VERSION} yet"
         fi
 
   build:
@@ -131,7 +130,7 @@ jobs:
 
   release:
     needs: [check-version, build]
-    if: (github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true') || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' && needs.check-version.outputs.version-changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -179,7 +178,11 @@ jobs:
         
         ### Features
         - 2×2 and 3×3 mosaics with clip names and multi-file drop
-        - 720p or 1080p, mute or first-clip audio, letterbox or crop
+        - 720p or 1080p, mute or first occupied cell’s audio (grid order), letterbox or crop
+        - Duration: full length (pad to longest) or cap at 5, 15, 30, or 60 seconds from the start
+        - Session restore: output settings, last save folder, and occupied cells on launch when files still exist
+        - Rearrange clips: drag filled cell onto another to swap, or onto empty to move
+        - Cell previews: muted first-frame thumbnail; filenames stay visible
         - Cancel an in-progress convert; grid stays filled after success
         - MP4, MOV, M4V, WebM, AVI, and MKV inputs
         

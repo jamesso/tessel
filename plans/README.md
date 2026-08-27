@@ -58,8 +58,8 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 044 | Overlay a single occupied cell; keep xstack for two or more | P1 | S | — | DONE |
 | 045 | Kill leftover duration probes when one probe fails | P1 | S | — (before 046, 055) | DONE |
 | 046 | Keep the encoded temp when rename fails | P1 | S | 045 | DONE |
-| 047 | Pack on dispatch; publish only when a new version is pushed | P2 | S | — | TODO |
-| 048 | Document duration cap, restore, swap, and cell previews | P2 | S | — | TODO |
+| 047 | Pack on dispatch; publish only when a new version is pushed | P2 | S | — | DONE |
+| 048 | Document duration cap, restore, swap, and cell previews | P2 | S | — | DONE |
 | 049 | One `-i` per unique path, then `split` | P2 | M | 044 | TODO |
 | 050 | Do not let prefs restore clobber a drop during launch | P2 | S | — | DONE |
 | 051 | Ship one supported FFmpeg version on every packager platform | P3 | L | 044 (049 preferred) | TODO |
