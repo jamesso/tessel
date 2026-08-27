@@ -43,6 +43,19 @@ test('preload receive whitelist includes video:cancelled', () => {
     assert.match(src, /'video:error'/);
 });
 
+test('unexpected error handlers kill ffmpeg and always send video:error', () => {
+    const src = read('main.js');
+    const stopFn = src.indexOf('function stopJobAndNotifyUnexpectedError');
+    const uncaught = src.indexOf("process.on('uncaughtException'");
+    const rejection = src.indexOf("process.on('unhandledRejection'");
+    assert.ok(stopFn !== -1 && uncaught !== -1 && rejection !== -1);
+    assert.ok(stopFn < uncaught, 'stopJobAndNotifyUnexpectedError before uncaughtException');
+    const handlerBlock = src.slice(stopFn, rejection + 400);
+    assert.match(handlerBlock, /ffmpegSession\.killActiveFfmpeg\(/);
+    assert.match(handlerBlock, /sendToRenderer\('video:error', 'Unexpected error'\)/);
+    assert.doesNotMatch(handlerBlock, /if \(!isDev\)/);
+});
+
 test('main registers video:cancel and kill notifies video:cancelled not video:done', () => {
     const mainSrc = read('main.js');
     assert.match(mainSrc, /ipcMain\.on\('video:cancel'/);

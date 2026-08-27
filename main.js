@@ -62,20 +62,21 @@ const ffmpegSession = createFfmpegSession({
     log: debugLog,
 })
 
+function stopJobAndNotifyUnexpectedError() {
+    ffmpegSession.killActiveFfmpeg()
+    sendToRenderer('video:error', 'Unexpected error')
+}
+
 process.on('uncaughtException', (error) => {
     debugLog('Uncaught Exception:', error.stack)
-    if (!isDev) {
-        console.error(error)
-        sendToRenderer('video:error', 'Unexpected error')
-    }
+    console.error(error)
+    stopJobAndNotifyUnexpectedError()
 })
 
 process.on('unhandledRejection', (reason, promise) => {
     debugLog('Unhandled Rejection:', { reason: reason.toString(), promise: promise.toString() })
-    if (!isDev) {
-        console.error(reason)
-        sendToRenderer('video:error', 'Unexpected error')
-    }
+    console.error(reason)
+    stopJobAndNotifyUnexpectedError()
 })
 
 // Set up IPC handlers before creating windows
