@@ -5,6 +5,7 @@ const {
     buildVideoInfo,
     buildFilterComplex,
     buildFfmpegArgs,
+    resolveEncodeDuration,
 } = require('../lib/mosaic');
 
 const output1080 = { width: 1920, height: 1080 };
@@ -98,4 +99,20 @@ test('audio none keeps -an and does not map audio', () => {
     assert.ok(args.includes('-an'));
     assert.equal(args.includes('0:a?'), false);
     assert.equal(args.some((a) => String(a).includes('apad')), false);
+});
+
+test('N-seconds policy sets -t to the cap without changing audio mapping', () => {
+    const durations = { '/only.mp4': 10 };
+    const encodeDuration = resolveEncodeDuration(durations, { mode: 'seconds', seconds: 5 });
+    const slotPaths = ['/only.mp4', null, null, null];
+    const { blockWidth, blockHeight } = gridMetrics('2x2');
+    const videoInfo = buildVideoInfo(slotPaths, durations, encodeDuration);
+    const filterComplex = buildFilterComplex(videoInfo, encodeDuration, blockWidth, blockHeight);
+    const args = buildFfmpegArgs(videoInfo, filterComplex, encodeDuration, '/out.mp4', { audio: 'first' });
+
+    assert.equal(encodeDuration, 5);
+    assert.equal(args[args.indexOf('-t') + 1], '5');
+    assert.ok(args.includes('0:a?'));
+    assert.ok(args.some((a) => String(a).includes('apad')));
+    assert.doesNotMatch(filterComplex, /tpad/);
 });

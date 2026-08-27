@@ -449,6 +449,74 @@ test('2x2 probes only selected slots not hidden indices', async () => {
     assert.equal(probes.length, 1);
 });
 
+test('seconds duration cap sets encode -t to the allowlisted seconds', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const spawnCalls = [];
+    const wrappedSpawn = (...args) => {
+        spawnCalls.push(args);
+        return spawn(...args);
+    };
+    const { session } = createSession(wrappedSpawn);
+
+    session.convertVideo(defaultConvertPayload({
+        durationMode: 'seconds',
+        seconds: 5,
+    }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:10.00\n');
+    await waitUntil(() => encodes.length === 1);
+
+    const encodeArgs = spawnCalls.find((args) => !args[1].includes('-hide_banner'))[1];
+    assert.equal(encodeArgs[encodeArgs.indexOf('-t') + 1], '5');
+    const filterComplex = encodeArgs[encodeArgs.indexOf('-filter_complex') + 1];
+    assert.equal(String(filterComplex).includes('tpad'), false);
+});
+
+test('seconds cap does not extend past the longest clip', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const spawnCalls = [];
+    const wrappedSpawn = (...args) => {
+        spawnCalls.push(args);
+        return spawn(...args);
+    };
+    const { session } = createSession(wrappedSpawn);
+
+    session.convertVideo(defaultConvertPayload({
+        durationMode: 'seconds',
+        seconds: 15,
+    }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:08.00\n');
+    await waitUntil(() => encodes.length === 1);
+
+    const encodeArgs = spawnCalls.find((args) => !args[1].includes('-hide_banner'))[1];
+    assert.equal(encodeArgs[encodeArgs.indexOf('-t') + 1], '8');
+});
+
+test('invalid durationMode or seconds keeps pad-to-longest -t', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const spawnCalls = [];
+    const wrappedSpawn = (...args) => {
+        spawnCalls.push(args);
+        return spawn(...args);
+    };
+    const { session } = createSession(wrappedSpawn);
+
+    session.convertVideo(defaultConvertPayload({
+        durationMode: 'shortest',
+        seconds: 7,
+    }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:10.00\n');
+    await waitUntil(() => encodes.length === 1);
+
+    const encodeArgs = spawnCalls.find((args) => !args[1].includes('-hide_banner'))[1];
+    assert.equal(encodeArgs[encodeArgs.indexOf('-t') + 1], '10');
+});
+
 test('four unique paths never exceed three concurrent probes', async () => {
     const { spawn, probes, encodes, getMaxLiveProbes } = createConcurrencySpawnFake();
     const { session, sent } = createSession(spawn);

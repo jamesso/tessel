@@ -17,6 +17,7 @@ const defaults = {
     height: 720,
     audio: 'none',
     fit: 'letterbox',
+    durationMode: 'longest',
     lastSaveDir: null,
     paths: [null, null, null, null, null, null, null, null, null],
 };
@@ -36,11 +37,25 @@ test('normalizePrefs fills defaults for missing and invalid fields', () => {
             height: 480,
             audio: 'mix',
             fit: 'stretch',
+            durationMode: 'shortest',
+            seconds: 7,
             lastSaveDir: 12,
             paths: 'nope',
         }),
         defaults,
     );
+});
+
+test('durationMode seconds with allowlisted seconds is preserved', () => {
+    const got = normalizePrefs({ durationMode: 'seconds', seconds: 15 });
+    assert.equal(got.durationMode, 'seconds');
+    assert.equal(got.seconds, 15);
+});
+
+test('durationMode seconds without allowlisted seconds falls back to longest', () => {
+    const got = normalizePrefs({ durationMode: 'seconds', seconds: 12 });
+    assert.equal(got.durationMode, 'longest');
+    assert.equal(got.seconds, undefined);
 });
 
 test('parsePrefsJson returns defaults for invalid JSON', () => {
@@ -58,6 +73,8 @@ test('1080p crop first and lastSaveDir are preserved', () => {
         height: 1080,
         audio: 'first',
         fit: 'crop',
+        durationMode: 'seconds',
+        seconds: 30,
         lastSaveDir: '/Users/me/Exports',
         paths: ['/a.mp4', null, '/c.mp4'],
     };
@@ -67,6 +84,8 @@ test('1080p crop first and lastSaveDir are preserved', () => {
     assert.equal(got.height, 1080);
     assert.equal(got.audio, 'first');
     assert.equal(got.fit, 'crop');
+    assert.equal(got.durationMode, 'seconds');
+    assert.equal(got.seconds, 30);
     assert.equal(got.lastSaveDir, '/Users/me/Exports');
     assert.equal(got.paths.length, 9);
     assert.equal(got.paths[0], '/a.mp4');
@@ -146,6 +165,7 @@ test('serializePrefs writes pretty JSON of normalized prefs', () => {
     assert.match(text, /\n/);
     const parsed = JSON.parse(text);
     assert.equal(parsed.audio, 'first');
+    assert.equal(parsed.durationMode, 'longest');
     assert.equal(parsed.width, 1280);
     assert.equal(parsed.extra, undefined);
 });

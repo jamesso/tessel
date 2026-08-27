@@ -133,7 +133,18 @@ Goldens: shortest → `-t` equals min; tpad not used when all clips ≥ encode d
 
 ## Spike result
 
-_(executor fills)_
+Bundled ffmpeg: `ffmpeg version 6.0` (`node_modules/ffmpeg-static/ffmpeg`). Two lavfi sources (5s red + 10s blue, AAC), current `buildFilterComplex` / `buildFfmpegArgs` with first-clip `apad` + `-t`.
+
+| Policy | `-t` | container `ffmpeg -i` | video decode | audio decode | tpad | ffmpeg exit | filter errors |
+|--------|------|------------------------|--------------|--------------|------|-------------|---------------|
+| First N seconds (`N=2`) | 2 | `00:00:02.02` | 2.00s (50 frames @ 25 fps) | 2.02s | no (both clips > N) | 0 | none |
+| First N seconds (`N=1`) | 1 | `00:00:01.02` | 1.00s (25 frames) | 1.02s | no | 0 | none |
+| Match shortest (min=5s, not shipped) | 5 | `00:00:05.02` | 5.00s | 5.01s | no | 0 | none |
+| Pad-to-longest baseline (max=10s) | 10 | `00:00:10.02` | 10.00s (250 frames) | 10.00s | yes (5s cell) | 0 | none |
+
+A/V: first-clip audio does **not** run past video. The ~20ms audio/container vs video is AAC encoder padding, same as today's longest path (`00:00:10.02`). `apad` + new `-t` did not error.
+
+**Shipped policy:** Full length (default, pad-to-longest) + **First N seconds** (`5` / `15` / `30` / `60`) via one `<select id="output-duration">`. Not shortest — users want the start of long clips (e.g. first 15s of 10-minute sources), not whatever cell happens to be shortest.
 
 ## Maintenance notes
 

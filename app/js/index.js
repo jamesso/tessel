@@ -52,6 +52,14 @@ var lastSaveDir = null
 let converting = false
 let applyingPrefs = false
 
+function getDurationSettings() {
+    const value = document.getElementById('output-duration').value
+    if (value === '5' || value === '15' || value === '30' || value === '60') {
+        return { durationMode: 'seconds', seconds: Number(value) }
+    }
+    return { durationMode: 'longest' }
+}
+
 function getOutputSettings() {
     const resolution = document.getElementById('output-resolution').value.split('x')
     return {
@@ -59,6 +67,7 @@ function getOutputSettings() {
         height: Number(resolution[1]),
         audio: document.getElementById('output-audio').value,
         fit: document.getElementById('output-fit').value,
+        ...getDurationSettings(),
     }
 }
 
@@ -99,6 +108,8 @@ function collectPrefs() {
         height: settings.height,
         audio: settings.audio,
         fit: settings.fit,
+        durationMode: settings.durationMode,
+        seconds: settings.seconds,
         lastSaveDir: lastSaveDir,
         paths: collectSlotPaths(),
     }
@@ -120,6 +131,12 @@ function applyPrefs(prefs) {
     document.getElementById('output-resolution').value = prefs.width + 'x' + prefs.height
     document.getElementById('output-audio').value = prefs.audio
     document.getElementById('output-fit').value = prefs.fit
+    const durationSelect = document.getElementById('output-duration')
+    if (prefs.durationMode === 'seconds' && (prefs.seconds === 5 || prefs.seconds === 15 || prefs.seconds === 30 || prefs.seconds === 60)) {
+        durationSelect.value = String(prefs.seconds)
+    } else {
+        durationSelect.value = 'longest'
+    }
     lastSaveDir = prefs.lastSaveDir
     switchGrid(prefs.gridType)
     const dropzones = document.querySelectorAll('.dropzone')
@@ -539,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     })
 
-    const settingIds = ['output-resolution', 'output-audio', 'output-fit']
+    const settingIds = ['output-resolution', 'output-audio', 'output-fit', 'output-duration']
     settingIds.forEach((id) => {
         document.getElementById(id).addEventListener('change', persistPrefs)
     })

@@ -6,6 +6,7 @@ const {
     buildVideoInfo,
     buildFilterComplex,
     buildFfmpegArgs,
+    resolveEncodeDuration,
 } = require('../lib/mosaic');
 
 const ninePaths = [
@@ -169,6 +170,55 @@ test('2x2 grid metrics unchanged', () => {
     assert.equal(blockWidth, 640);
     assert.equal(blockHeight, 360);
     assert.deepEqual(columnWidths, [640, 640]);
+});
+
+test('resolveEncodeDuration uses max without policy or with longest', () => {
+    const durations = { '/a.mp4': 5, '/b.mp4': 12 };
+    assert.equal(resolveEncodeDuration(durations), 12);
+    assert.equal(resolveEncodeDuration(durations, undefined), 12);
+    assert.equal(resolveEncodeDuration(durations, {}), 12);
+    assert.equal(resolveEncodeDuration(durations, { mode: 'longest' }), 12);
+});
+
+test('resolveEncodeDuration caps to allowlisted seconds and never exceeds max', () => {
+    assert.equal(resolveEncodeDuration({ '/a.mp4': 60, '/b.mp4': 90 }, { mode: 'seconds', seconds: 15 }), 15);
+    assert.equal(resolveEncodeDuration({ '/a.mp4': 10, '/b.mp4': 8 }, { mode: 'seconds', seconds: 15 }), 10);
+    assert.equal(resolveEncodeDuration({ '/a.mp4': 60 }, { mode: 'seconds', seconds: 5 }), 5);
+    assert.equal(resolveEncodeDuration({ '/a.mp4': 60 }, { mode: 'seconds', seconds: 30 }), 30);
+    assert.equal(resolveEncodeDuration({ '/a.mp4': 60 }, { mode: 'seconds', seconds: 60 }), 60);
+});
+
+test('resolveEncodeDuration invalid policy falls back to longest', () => {
+    const durations = { '/a.mp4': 12 };
+    assert.equal(resolveEncodeDuration(durations, { mode: 'seconds', seconds: 7 }), 12);
+    assert.equal(resolveEncodeDuration(durations, { mode: 'shortest' }), 12);
+    assert.equal(resolveEncodeDuration(durations, { mode: 'seconds', seconds: 'nope' }), 12);
+    assert.equal(resolveEncodeDuration(durations, { mode: 'seconds' }), 12);
+});
+
+test('N-seconds encode: -t equals cap and tpad is omitted when all clips meet the cap', () => {
+    const encodeDuration = 5;
+    const slotPaths = ['/a.mp4', '/b.mp4', null, null];
+    const videoDurations = { '/a.mp4': 10, '/b.mp4': 8 };
+    const videoInfo = buildVideoInfo(slotPaths, videoDurations, encodeDuration);
+    const { blockWidth, blockHeight } = gridMetrics('2x2');
+    const filterComplex = buildFilterComplex(videoInfo, encodeDuration, blockWidth, blockHeight);
+    const args = buildFfmpegArgs(videoInfo, filterComplex, encodeDuration, '/out.mp4');
+
+    assert.equal(args[args.indexOf('-t') + 1], '5');
+    assert.doesNotMatch(filterComplex, /tpad/);
+});
+
+test('tpad still used when a clip is shorter than the encode duration cap', () => {
+    const encodeDuration = 5;
+    const slotPaths = ['/short.mp4', '/long.mp4', null, null];
+    const videoDurations = { '/short.mp4': 2, '/long.mp4': 10 };
+    const videoInfo = buildVideoInfo(slotPaths, videoDurations, encodeDuration);
+    const { blockWidth, blockHeight } = gridMetrics('2x2');
+    const filterComplex = buildFilterComplex(videoInfo, encodeDuration, blockWidth, blockHeight);
+
+    assert.match(filterComplex, /tpad/);
+    assert.match(filterComplex, /stop_duration=3/);
 });
 
 test('buildFfmpegArgs throws when all slots are black', () => {
