@@ -130,6 +130,24 @@ test('happy path probes then encodes to video:done', async () => {
     assert.equal(session.isBusy(), false);
 });
 
+test('encode progress parses time= split across stderr chunks', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const { session, sent } = createSession(spawn);
+
+    session.convertVideo(defaultConvertPayload());
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+
+    await waitUntil(() => encodes.length === 1);
+    encodes[0].stderr.emit('data', 'time=00:00:0');
+    encodes[0].stderr.emit('data', '1.00 bitrate=N/A\n');
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:progress' && s.args[0] && s.args[0].percent >= 99));
+    encodes[0].emit('close', 0);
+    await waitUntil(() => sent.some((s) => s.channel === 'video:done'));
+});
+
 test('encode failure sends Conversion failed without video:done', async () => {
     const { spawn, probes, encodes } = createSpawnFake();
     const { session, sent } = createSession(spawn);

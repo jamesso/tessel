@@ -39,11 +39,11 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 027 | Extract FFmpeg convert session + fake-spawn tests | P1 | M | — | DONE |
 | 028 | Encode to temp file; replace dest on success | P1 | M | 027 | TODO |
 | 029 | Isolate convert jobs (ignore stale close) | P1 | M | 027 | TODO |
-| 030 | Unpacked ffmpeg path + `file,pipe` protocol whitelist | P1 | S | — | TODO |
-| 031 | Octet-stream drops + ffmpeg exit in errors | P2 | S | — | TODO |
+| 030 | Unpacked ffmpeg path + `file,pipe` protocol whitelist | P1 | S | — | DONE |
+| 031 | Octet-stream drops + ffmpeg exit in errors | P2 | S | — | DONE |
 | 032 | Kill ffmpeg on uncaughtException / unhandledRejection | P2 | S | — | TODO |
 | 033 | Probe unique clips with concurrency cap 3 | P2 | S | 027 (prefer) | TODO |
-| 034 | Parse progress `time=` from accumulated stderr | P2 | S | — | TODO |
+| 034 | Parse progress `time=` from accumulated stderr | P2 | S | — | DONE |
 | 035 | NOTICE: MIT app ships GPL FFmpeg | P2 | S | — | DONE |
 | 036 | Skip black placeholder overlays | P2 | S | — | DONE |
 | 037 | Compose cells with xstack (spike first) | P2 | M | 036 | TODO |
