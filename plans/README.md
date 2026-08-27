@@ -65,7 +65,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 051 | Ship one supported FFmpeg version on every packager platform | P3 | L | 044 (049 preferred) | TODO |
 | 052 | Flip packaged Electron fuses off insecure defaults | P3 | M | — | DONE (smoked macOS arm64) |
 | 053 | Load slot-fill and media-accept from one UMD file each | P3 | S | — (before 060) | DONE |
-| 054 | One allowlist for duration, resolution, fit, and audio | P3 | S | — (before 059) | TODO |
+| 054 | One allowlist for duration, resolution, fit, and audio | P3 | S | — (before 059) | DONE |
 | 055 | Cap encode and probe stderr buffers | P2 | S | 046 | TODO |
 | 056 | Investigate cover-art `Duration:` winning the probe | P3 | S | — | TODO |
 | 057 | Investigate packaged `file://` cell previews | P3 | S | — | DONE |
