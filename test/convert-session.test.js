@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
-const { shouldUnlinkPartialOutput } = require('../lib/convert-session');
+const { shouldUnlinkPartialOutput, tempOutputPath } = require('../lib/convert-session');
 
 const root = path.join(__dirname, '..');
 
@@ -23,6 +23,10 @@ test('shouldUnlinkPartialOutput only when this job created the file after encode
     assert.equal(shouldUnlinkPartialOutput({ encodeStarted: true, createdByThisJob: false }), false);
     assert.equal(shouldUnlinkPartialOutput({ encodeStarted: false, createdByThisJob: true }), false);
     assert.equal(shouldUnlinkPartialOutput({ encodeStarted: false, createdByThisJob: false }), false);
+});
+
+test('tempOutputPath appends .tessel-partial sibling suffix', () => {
+    assert.equal(tempOutputPath('/tmp/a.mp4'), '/tmp/a.mp4.tessel-partial');
 });
 
 test('preload send whitelist includes video:cancel', () => {
