@@ -178,16 +178,24 @@ jobs:
         
         ### Features
         - 2×2 and 3×3 mosaics with clip names and multi-file drop
-        - 720p or 1080p, mute or first occupied cell’s audio (grid order), letterbox or crop, duration, and pad — in Advanced
+        - Advanced (above Convert): 720p or 1080p, mute or a chosen occupied cell’s audio, letterbox or crop, duration, and pad
         - Duration: full length (pad shorter cells with black or freeze) or cap at 5, 15, 30, or 60 seconds from the start
         - Session restore: output settings, last save folder, and occupied cells on launch when files still exist
+        - File → Export/Import layout JSON (absolute paths; missing files skipped)
         - Rearrange clips: drag filled cell onto another to swap, or onto empty to copy
         - Cell previews: muted first-frame thumbnail; filenames stay visible
         - Cancel an in-progress convert; grid stays filled after success
+        - Bundled FFmpeg 7.1 on macOS, Linux, and Windows
         - MP4, MOV, M4V, WebM, AVI, and MKV inputs
         
         ### Changes
-        See the commit history for detailed changes in this version.
+        - Move output settings into an Advanced dialog with themed lists and Hugeicons
+        - Pad shorter clips with black or a freeze frame
+        - Pick which occupied cell supplies audio
+        - Import and export mosaic layout JSON from the File menu
+        - Copy a clip onto an empty cell instead of only swapping
+        - Ship hash-pinned FFmpeg 7.1 instead of ffmpeg-static
+        - Write encode temps as *.tessel-partial.mp4 so FFmpeg can mux the file
         EOF
 
     - name: Create GitHub Release
