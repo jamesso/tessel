@@ -290,7 +290,7 @@ for (let i = 0; i < dz.length; i++){
                 dz[i].classList.add("drop-target");
             }
             if (e.dataTransfer) {
-                e.dataTransfer.dropEffect = 'move';
+                e.dataTransfer.dropEffect = window['vidPath' + vidNum] ? 'move' : 'copy';
             }
         }
         return false;
@@ -315,7 +315,7 @@ for (let i = 0; i < dz.length; i++){
         suppressDropzoneClick = true
         e.dataTransfer.setData('application/x-tessel-slot', String(vidNum));
         e.dataTransfer.setData('text/plain', String(vidNum));
-        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.effectAllowed = 'copyMove';
         dz[i].classList.add('dragging');
     };
 
@@ -327,6 +327,7 @@ for (let i = 0; i < dz.length; i++){
         return false;
     };
 
+    // In-app drop: copy onto an empty cell (source stays filled); swap/move when the dest is occupied.
     dz[i].ondrop = async (e) => {
         e.preventDefault();
         dz[i].classList.remove("hover");
@@ -346,7 +347,9 @@ for (let i = 0; i < dz.length; i++){
             for (let s = 0; s < visibleCount; s++) {
                 paths[s] = window['vidPath' + (s + 1)];
             }
-            const next = window.swapOrMove(paths, fromIndex, i);
+            const next = !paths[i]
+                ? window.copyToSlot(paths, fromIndex, i)
+                : window.swapOrMove(paths, fromIndex, i);
             applyVisiblePaths(paths, next);
             return false;
         }
