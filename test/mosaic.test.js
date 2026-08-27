@@ -122,7 +122,7 @@ test('3x3 column widths sum to 1280 with last column 428px', () => {
     assert.equal(columnWidths.reduce((sum, w) => sum + w, 0), 1280);
 });
 
-test('3x3 overlay positions and cell sizes fill canvas width', () => {
+test('3x3 xstack layout and cell sizes fill canvas width', () => {
     const longestDuration = 10;
     const slotPaths = ninePaths;
     const videoDurations = Object.fromEntries(ninePaths.map(p => [p, 10]));
@@ -142,7 +142,10 @@ test('3x3 overlay positions and cell sizes fill canvas width', () => {
 
     assert.match(filterComplex, /scale=428:240:force_original_aspect_ratio=decrease/);
     assert.match(filterComplex, /pad=428:240:\(ow-iw\)\/2:\(oh-ih\)\/2:black/);
-    assert.match(filterComplex, /overlay=x=852:y=480\[final\]/);
+    assert.match(filterComplex, /xstack=inputs=9:fill=black:layout=.*852_480/);
+    assert.match(filterComplex, /\[canvas\]\[stacked\]overlay=x=0:y=0\[final\]/);
+    assert.doesNotMatch(filterComplex, /mosaic\d/);
+    assert.doesNotMatch(filterComplex, /overlay=x=852:y=480/);
 });
 
 test('3x3 all-black slots skip per-cell color sources; last column metadata stays 428px', () => {

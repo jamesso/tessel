@@ -116,7 +116,12 @@ Optional: lavfi 2×2 through production `buildFfmpegArgs` in `test/ffmpeg-integr
 
 ## Spike result
 
-_(executor fills)_
+- **ffmpeg**: 6.0 (`ffmpeg-static`, bundled)
+- **Dimensions**: 1280×720 (2×2 opposite corners, red/blue 64×64 lavfi → letterbox 640×360 cells); also verified 2×2 sparse, 3×3 sparse, and 3×3 full at 1280×720
+- **Overlay graph**: production post-036 chain (canvas + serial `overlay` per occupied cell)
+- **xstack graph**: same per-cell `blockN` chains + `xstack=inputs=N:fill=black:layout=x_y|...` + single `[canvas][stacked]overlay=0:0[final]` (plain `xstack` with `fill=black` alone mismatched on 3×3 full — bounding box / uneven 428px column — so production uses canvas composite)
+- **Comparison**: frame 0 extracted as `rgb24` rawvideo; byte-for-byte pixel compare
+- **Result**: **MATCH** (0 mismatched pixels on all verified scenarios with canvas+xstack composite)
 
 ## Maintenance notes
 
