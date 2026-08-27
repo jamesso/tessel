@@ -44,10 +44,29 @@
         return next;
     }
 
+    function copyToSlot(paths, fromIndex, toIndex) {
+        const next = paths.slice();
+        if (fromIndex === toIndex) {
+            return next;
+        }
+        if (fromIndex < 0 || toIndex < 0 || fromIndex >= next.length || toIndex >= next.length) {
+            return next;
+        }
+        if (!next[fromIndex]) {
+            return next;
+        }
+        if (next[toIndex]) {
+            return next;
+        }
+        next[toIndex] = next[fromIndex];
+        return next;
+    }
+
     root.nextEmptySlots = nextEmptySlots;
     root.assignDrops = assignDrops;
     root.swapOrMove = swapOrMove;
+    root.copyToSlot = copyToSlot;
     if (typeof module === 'object' && module.exports) {
-        module.exports = { nextEmptySlots, assignDrops, swapOrMove };
+        module.exports = { nextEmptySlots, assignDrops, swapOrMove, copyToSlot };
     }
 })(typeof window !== 'undefined' ? window : globalThis);

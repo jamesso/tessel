@@ -1,6 +1,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { nextEmptySlots, assignDrops, swapOrMove } = require('../app/js/slot-fill');
+const fs = require('node:fs');
+const path = require('node:path');
+const { nextEmptySlots, assignDrops, swapOrMove, copyToSlot } = require('../app/js/slot-fill');
 
 test('4 files onto 2x2 with slot 0 filled fill the next three empties', () => {
     const empties = nextEmptySlots([true, false, false, false], 4);
@@ -55,4 +57,36 @@ test('swapOrMove moves a clip onto an empty visible slot', () => {
 test('swapOrMove swaps two occupied visible slots', () => {
     const paths = ['a.mp4', 'b.mp4', '', ''];
     assert.deepEqual(swapOrMove(paths, 0, 1), ['b.mp4', 'a.mp4', '', '']);
+});
+
+test('copyToSlot copies a clip onto an empty slot and keeps the source filled', () => {
+    const paths = ['a.mp4', '', 'c.mp4', ''];
+    assert.deepEqual(copyToSlot(paths, 0, 1), ['a.mp4', 'a.mp4', 'c.mp4', '']);
+});
+
+test('copyToSlot is a no-op when the destination slot is occupied', () => {
+    const paths = ['a.mp4', 'b.mp4', '', ''];
+    assert.deepEqual(copyToSlot(paths, 0, 1), ['a.mp4', 'b.mp4', '', '']);
+});
+
+test('copyToSlot is a no-op when from and to are the same slot', () => {
+    const paths = ['a.mp4', 'b.mp4', '', ''];
+    assert.deepEqual(copyToSlot(paths, 0, 0), ['a.mp4', 'b.mp4', '', '']);
+});
+
+test('copyToSlot is a no-op when the source slot is empty', () => {
+    const paths = ['', 'b.mp4', '', ''];
+    assert.deepEqual(copyToSlot(paths, 0, 2), ['', 'b.mp4', '', '']);
+});
+
+test('in-app drop copies onto an empty cell with no modifier; occupied dest still swaps', () => {
+    const indexSrc = fs.readFileSync(path.join(__dirname, '../app/js/index.js'), 'utf8');
+    assert.match(indexSrc, /effectAllowed = 'copyMove'/);
+    assert.match(indexSrc, /copyToSlot/);
+    assert.match(indexSrc, /!paths\[i\]/);
+    assert.doesNotMatch(indexSrc, /\baltKey\b|\bctrlKey\b|\bmetaKey\b/);
+    const emptyDest = ['a.mp4', '', 'c.mp4', ''];
+    assert.deepEqual(copyToSlot(emptyDest, 0, 1), ['a.mp4', 'a.mp4', 'c.mp4', '']);
+    const occupied = ['a.mp4', 'b.mp4', '', ''];
+    assert.deepEqual(swapOrMove(occupied, 0, 1), ['b.mp4', 'a.mp4', '', '']);
 });

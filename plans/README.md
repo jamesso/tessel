@@ -71,7 +71,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 057 | Investigate packaged `file://` cell previews | P3 | S | — | DONE |
 | 058 | Investigate 4K × 9 HTML5 posters while converting | P3 | S | — | TODO |
 | 059 | Let the user pick which occupied cell supplies audio | P3 | M | 054 | TODO |
-| 060 | Copy a clip onto an empty cell | P3 | S | 049, 053 (preferred) | TODO |
+| 060 | Copy a clip onto an empty cell | P3 | S | 049, 053 (preferred) | DONE |
 | 061 | Import and export the session prefs JSON | P3 | S | — | TODO |
 | 062 | Spike freeze or loop for short cells instead of black tpad | P3 | M | — (not parallel 044/049) | TODO |
 
