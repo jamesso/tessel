@@ -8,7 +8,7 @@
         if (mime.startsWith('video/')) {
             return true;
         }
-        if (mime) {
+        if (mime && mime !== 'application/octet-stream') {
             return false;
         }
         return typeof name === 'string' && VIDEO_NAME_RE.test(name);

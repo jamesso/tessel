@@ -45,6 +45,7 @@ const { canSend } = require('./lib/ipc-send')
 const { attachNavigationGuard } = require('./lib/navigation-guard')
 const { shouldRejectSecondJob } = require('./lib/job-lock')
 const { shouldUnlinkPartialOutput } = require('./lib/convert-session')
+const { formatConversionFailedMessage } = require('./lib/ffmpeg-error')
 
 const appHtmlRoot = path.join(__dirname, 'app')
 
@@ -508,13 +509,13 @@ function convertVideo({ vidPath1, vidPath2, vidPath3, vidPath4, vidPath5, vidPat
                         sendToRenderer('video:done');
                     } else {
                         debugLog('FFmpeg failed:', { code, lastOutput: ffmpegOutput.slice(-1000) })
-                        signalError('Conversion failed');
+                        signalError(formatConversionFailedMessage(code, ffmpegOutput, filePath));
                     }
                 });
 
                 ffmpegProcess.on('error', (err) => {
-                    debugLog('FFmpeg spawn error:', err)
-                    signalError(err.message);
+                    debugLog('FFmpeg spawn error:', err.message)
+                    signalError('Could not start FFmpeg');
                 });
             };
 
