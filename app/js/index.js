@@ -51,6 +51,17 @@ var currentGrid = '2x2' // Default grid type
 var lastSaveDir = null
 let converting = false
 let applyingPrefs = false
+let userTouchedGrid = false
+
+function shouldRestoreGridAndPaths(userTouchedGrid) {
+    return !userTouchedGrid
+}
+
+function markGridTouched() {
+    if (!applyingPrefs) {
+        userTouchedGrid = true
+    }
+}
 
 function getDurationSettings() {
     const value = document.getElementById('output-duration').value
@@ -138,6 +149,9 @@ function applyPrefs(prefs) {
         durationSelect.value = 'longest'
     }
     lastSaveDir = prefs.lastSaveDir
+    if (!shouldRestoreGridAndPaths(userTouchedGrid)) {
+        return
+    }
     switchGrid(prefs.gridType)
     const dropzones = document.querySelectorAll('.dropzone')
     const visibleCount = prefs.gridType === '2x2' ? 4 : 9
@@ -154,18 +168,22 @@ async function restorePrefs() {
     if (!window.electronAPI || typeof electronAPI.loadPrefs !== 'function') {
         return
     }
-    applyingPrefs = true
     try {
         const prefs = await electronAPI.loadPrefs()
+        applyingPrefs = true
         applyPrefs(prefs)
     } catch (err) {
         console.error('prefs:load failed:', err)
     } finally {
         applyingPrefs = false
+        if (userTouchedGrid) {
+            persistPrefs()
+        }
     }
 }
 
 function setSlotOccupied(dropzone, filePath) {
+    markGridTouched()
     const vidNum = dropzone.getAttribute('id').split('-')[1]
     window['vidPath' + vidNum] = filePath
     dropzone.classList.remove('empty')
@@ -193,6 +211,7 @@ function setSlotOccupied(dropzone, filePath) {
 }
 
 function clearSlot(dropzone, vidNum) {
+    markGridTouched()
     window['vidPath' + vidNum] = undefined
     dropzone.classList.add('empty')
     dropzone.classList.remove('file')
