@@ -56,7 +56,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 042 | Swap or move clips between cells | P2 | S | — | DONE |
 | 043 | Spike in-cell previews (abort if stutter) | P3 | M | — | DONE |
 | 044 | Overlay a single occupied cell; keep xstack for two or more | P1 | S | — | TODO |
-| 045 | Kill leftover duration probes when one probe fails | P1 | S | — (before 046, 055) | TODO |
+| 045 | Kill leftover duration probes when one probe fails | P1 | S | — (before 046, 055) | DONE |
 | 046 | Keep the encoded temp when rename fails | P1 | S | 045 | TODO |
 | 047 | Pack on dispatch; publish only when a new version is pushed | P2 | S | — | TODO |
 | 048 | Document duration cap, restore, swap, and cell previews | P2 | S | — | TODO |

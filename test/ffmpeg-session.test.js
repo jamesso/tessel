@@ -7,7 +7,9 @@ function createFakeProcess() {
     const proc = new EventEmitter();
     proc.stderr = new EventEmitter();
     proc.stdout = new EventEmitter();
+    proc.killCalls = 0;
     proc.kill = function () {
+        proc.killCalls++;
         setImmediate(() => proc.emit('close', 0));
     };
     return proc;
@@ -222,6 +224,38 @@ test('probe failure sends Could not read video duration', async () => {
     probes[0].emit('close', 1);
 
     await waitUntil(() => sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Could not read video duration'));
+});
+
+test('multi-path probe failure kills sibling probes and allows a new convert', async () => {
+    const { spawn, probes } = createSpawnFake();
+    const { session, sent } = createSession(spawn);
+
+    session.convertVideo(defaultConvertPayload({
+        vidPath1: '/a.mp4',
+        vidPath2: '/b.mp4',
+        vidPath3: '/c.mp4',
+        vidPath4: '/d.mp4',
+    }));
+
+    await waitUntil(() => probes.length >= 2);
+    probes[0].emit('close', 1);
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Could not read video duration'));
+
+    assert.ok(!sent.some((s) => s.channel === 'video:cancelled'));
+    assert.ok(!sent.some((s) => s.channel === 'video:done'));
+    assert.equal(session.isBusy(), false);
+
+    for (let i = 1; i < probes.length; i++) {
+        assert.ok(probes[i].killCalls >= 1, `expected probe ${i} to be killed`);
+    }
+
+    const eventsBeforeRetry = sent.length;
+    session.convertVideo(defaultConvertPayload({ vidPath1: '/retry.mp4' }));
+    await waitUntil(() => probes.length >= 4);
+
+    const retryEvents = sent.slice(eventsBeforeRetry);
+    assert.ok(!retryEvents.some((s) => s.channel === 'video:error' && s.args[0] === 'A conversion is already running'));
 });
 
 test('cancel during encode sends video:cancelled without video:done or video:error', async () => {
