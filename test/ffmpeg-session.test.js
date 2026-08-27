@@ -33,7 +33,25 @@ function createSpawnFake() {
 const fakeFs = {
     existsSync: () => false,
     unlinkSync: () => {},
+    renameSync: () => {},
 };
+
+function createTrackingFs(existsFor = []) {
+    const calls = { exists: [], unlinks: [], renames: [] };
+    const fs = {
+        existsSync(p) {
+            calls.exists.push(p);
+            return existsFor.includes(p);
+        },
+        unlinkSync(p) {
+            calls.unlinks.push(p);
+        },
+        renameSync(from, to) {
+            calls.renames.push([from, to]);
+        },
+    };
+    return { fs, calls };
+}
 
 function defaultConvertPayload(overrides = {}) {
     return {
@@ -194,4 +212,97 @@ test('cancel during encode sends video:cancelled without video:done or video:err
 
     assert.ok(!sent.some((s) => s.channel === 'video:done'));
     assert.ok(!sent.some((s) => s.channel === 'video:error'));
+});
+
+test('encode writes to temp path not destination', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const spawnCalls = [];
+    const wrappedSpawn = (...args) => {
+        spawnCalls.push(args);
+        return spawn(...args);
+    };
+    const { session } = createSession(wrappedSpawn);
+
+    session.convertVideo(defaultConvertPayload({ filePath: '/out.mp4' }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+
+    const encodeArgs = spawnCalls.find((args) => !args[1].includes('-hide_banner'))[1];
+    assert.equal(encodeArgs[encodeArgs.length - 1], '/out.mp4.tessel-partial');
+    assert.notEqual(encodeArgs[encodeArgs.length - 1], '/out.mp4');
+});
+
+test('success renames temp to destination without unlinking destination', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const { fs, calls } = createTrackingFs();
+    const { session, sent } = createSession(spawn, { fs });
+
+    session.convertVideo(defaultConvertPayload({ filePath: '/out.mp4' }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+    encodes[0].emit('close', 0);
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:done'));
+
+    assert.deepEqual(calls.renames, [['/out.mp4.tessel-partial', '/out.mp4']]);
+    assert.ok(!calls.unlinks.includes('/out.mp4'));
+});
+
+test('cancel unlinks temp only not destination', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const { fs, calls } = createTrackingFs();
+    const { session, sent } = createSession(spawn, { fs });
+
+    session.convertVideo(defaultConvertPayload({ filePath: '/out.mp4' }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+    session.killActiveFfmpeg({ notify: 'cancelled' });
+    encodes[0].emit('close', 1);
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:cancelled'));
+
+    assert.deepEqual(calls.unlinks, ['/out.mp4.tessel-partial']);
+    assert.ok(!calls.unlinks.includes('/out.mp4'));
+});
+
+test('encode failure unlinks temp only not destination', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const { fs, calls } = createTrackingFs();
+    const { session, sent } = createSession(spawn, { fs });
+
+    session.convertVideo(defaultConvertPayload({ filePath: '/out.mp4' }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+    encodes[0].emit('close', 1);
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:error'));
+
+    assert.deepEqual(calls.unlinks, ['/out.mp4.tessel-partial']);
+    assert.ok(!calls.unlinks.includes('/out.mp4'));
+});
+
+test('pre-existing destination still encodes to temp and renames on success', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const { fs, calls } = createTrackingFs(['/out.mp4']);
+    const { session, sent } = createSession(spawn, { fs });
+
+    session.convertVideo(defaultConvertPayload({ filePath: '/out.mp4' }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+    encodes[0].emit('close', 0);
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:done'));
+
+    assert.deepEqual(calls.renames, [['/out.mp4.tessel-partial', '/out.mp4']]);
+    assert.ok(!calls.unlinks.includes('/out.mp4'));
 });
