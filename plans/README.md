@@ -52,7 +52,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 040 | Remember settings, save folder, and grid | P2 | M | — | DONE |
 | 041 | Duration cap (spike, then one footer control) | P2 | M | — | DONE |
 | 042 | Swap or move clips between cells | P2 | S | — | DONE |
-| 043 | Spike in-cell previews (abort if stutter) | P3 | M | — | TODO |
+| 043 | Spike in-cell previews (abort if stutter) | P3 | M | — | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
