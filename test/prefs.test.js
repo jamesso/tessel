@@ -16,6 +16,21 @@ function readRepo(rel) {
     return fs.readFileSync(path.join(__dirname, '..', rel), 'utf8');
 }
 
+function layoutFnBlock(main, name) {
+    const start = main.indexOf(`async function ${name}`);
+    assert.ok(start !== -1, `missing async function ${name}`);
+    const end = main.indexOf('\nasync function ', start + 1);
+    return end === -1 ? main.slice(start) : main.slice(start, end);
+}
+
+function handlerAfter(source, marker) {
+    const start = source.indexOf(marker);
+    assert.ok(start !== -1, `missing ${marker}`);
+    const rest = source.slice(start + marker.length);
+    const next = rest.search(/\nelectronAPI\.receive\(|\nfunction |\ndocument\./);
+    return next === -1 ? rest : rest.slice(0, next);
+}
+
 const defaults = {
     version: 1,
     gridType: '2x2',
@@ -275,6 +290,36 @@ test('File menu import filters missing paths and applies prefs:imported', () => 
     assert.match(index, /prefs:imported/);
     assert.match(index, /applyPrefs/);
     assert.match(index, /persistPrefs/);
+});
+
+test('layout import and export are blocked while ffmpeg session is busy', () => {
+    const main = readRepo('main.js');
+    const exportFn = layoutFnBlock(main, 'exportLayout');
+    const importFn = layoutFnBlock(main, 'importLayout');
+    assert.match(exportFn, /ffmpegSession\.isBusy\(\)/);
+    assert.match(importFn, /ffmpegSession\.isBusy\(\)/);
+    assert.match(exportFn, /showErrorBox/);
+    assert.match(importFn, /showErrorBox/);
+    const exportBusy = exportFn.indexOf('ffmpegSession.isBusy()');
+    const exportReady = exportFn.indexOf('whenRendererReady');
+    assert.ok(exportBusy !== -1 && exportReady !== -1 && exportBusy < exportReady);
+    const importBusy = importFn.indexOf('ffmpegSession.isBusy()');
+    const importDialog = importFn.indexOf('showOpenDialog');
+    assert.ok(importBusy !== -1 && importDialog !== -1 && importBusy < importDialog);
+});
+
+test('renderer ignores layout import and collect while converting', () => {
+    const index = readRepo('app/js/index.js');
+    const imported = handlerAfter(index, "electronAPI.receive('prefs:imported'");
+    const collect = handlerAfter(index, "electronAPI.receive('prefs:collect'");
+    assert.match(imported, /if\s*\(\s*converting\s*\)/);
+    assert.match(collect, /if\s*\(\s*converting\s*\)/);
+    const importedGuard = imported.indexOf('if (converting)');
+    const applyPrefs = imported.indexOf('applyPrefs');
+    assert.ok(importedGuard !== -1 && applyPrefs !== -1 && importedGuard < applyPrefs);
+    const collectGuard = collect.indexOf('if (converting)');
+    const collectPrefs = collect.indexOf('collectPrefs');
+    assert.ok(collectGuard !== -1 && collectPrefs !== -1 && collectGuard < collectPrefs);
 });
 
 test('non-Mac Help menu About Tessel calls createAboutWindow', () => {

@@ -91,11 +91,19 @@ function whenRendererReady() {
 }
 
 async function exportLayout() {
+    if (ffmpegSession.isBusy()) {
+        dialog.showErrorBox('Export layout', 'A convert is running.')
+        return
+    }
     await whenRendererReady()
     mainWindow.webContents.send('prefs:collect')
 }
 
 async function importLayout() {
+    if (ffmpegSession.isBusy()) {
+        dialog.showErrorBox('Import layout', 'A convert is running.')
+        return
+    }
     if (!canSend(mainWindow)) {
         return
     }

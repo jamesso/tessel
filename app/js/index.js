@@ -670,6 +670,9 @@ electronAPI.receive('video:done', () => {
 })
 
 electronAPI.receive('prefs:collect', () => {
+    if (converting) {
+        return
+    }
     if (!window.electronAPI || typeof electronAPI.collectPrefs !== 'function') {
         return
     }
@@ -679,6 +682,9 @@ electronAPI.receive('prefs:collect', () => {
 })
 
 electronAPI.receive('prefs:imported', (prefs) => {
+    if (converting) {
+        return
+    }
     applyingPrefs = true
     try {
         applyPrefs(prefs, { applyGrid: true })

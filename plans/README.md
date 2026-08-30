@@ -80,7 +80,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 062 | Spike freeze or loop for short cells instead of black `tpad` | P3 | M | — (not parallel 044/049) | DONE |
 | 063 | Persist freeze/loop pad with the other output settings | P1 | S | — (not parallel 078) | DONE |
 | 064 | Swallow sibling duration-probe rejections after kill | P1 | S | — (before 066) | DONE |
-| 065 | Block import/export while Convert is running | P1 | S | — (before 083) | TODO |
+| 065 | Block import/export while Convert is running | P1 | S | — (before 083) | DONE |
 | 066 | Unique temp name if a recovery sibling already exists | P1 | S | 064 | TODO |
 | 067 | Re-pin BtbN FFmpeg to a month-end 7.1 build | P1 | M | — (before 069) | DONE |
 | 068 | About Tessel on Windows and Linux | P2 | S | — | DONE |
