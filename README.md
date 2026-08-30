@@ -43,7 +43,7 @@ A modern desktop application for creating stunning mosaic videos. Combine multip
 
 Download the latest release for your platform from the [Releases page](https://github.com/jamesso/tessel/releases):
 
-- **macOS (Apple Silicon)**: `tessel-macos-arm64.tar.gz`
+- **macOS (Apple Silicon, macOS 13 Ventura or later)**: `tessel-macos-arm64.tar.gz` — GitHub Release builds use Electron 44, which requires macOS 13+; Monterey is not supported.
 - **Linux (64-bit)**: `tessel-linux-x64.tar.gz`
 - **Windows (64-bit)**: `tessel-windows-x64.zip`
 
@@ -106,6 +106,7 @@ xattr -dr com.apple.quarantine /path/to/Tessel.app
 
 - Node.js 22.12 or later
 - npm
+- **python3** on your PATH (required by the `commit-msg` git hook installed via `npm install`)
 
 ### Setup
 
