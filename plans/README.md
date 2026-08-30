@@ -88,7 +88,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 070 | Fix PRODUCT.md, AGENTS.md, README, plans framing | P2 | S | — | DONE |
 | 071 | Stop baking 1.6.0 notes into every GitHub Release | P2 | S | — | DONE |
 | 072 | Bump GitHub Actions off Node 20 runtimes | P2 | S | — (not parallel 073) | DONE |
-| 073 | Cache FFmpeg (and Electron) in CI | P3 | S | — (not parallel 072) | TODO |
+| 073 | Cache FFmpeg (and Electron) in CI | P3 | S | — (not parallel 072) | DONE |
 | 074 | Investigate duration probe `-probesize` | P3 | S | — | TODO |
 | 075 | Investigate export vs `did-finish-load` | P3 | S | — | TODO |
 | 076 | Click picker: select several videos at once | P3 | S | — | TODO |

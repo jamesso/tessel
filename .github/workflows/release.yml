@@ -10,8 +10,25 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      electron_config_cache: ${{ github.workspace }}/.cache/electron
     steps:
     - uses: actions/checkout@v5
+
+    - name: Cache FFmpeg
+      uses: actions/cache@v6
+      with:
+        path: vendor/ffmpeg
+        key: ${{ runner.os }}-ffmpeg-${{ hashFiles('scripts/ffmpeg-hashes.json') }}
+
+    # Electron 44 uses @electron/get 5.x; default cache dirs via env-paths('electron'):
+    # Linux ~/.cache/electron, macOS ~/Library/Caches/electron, Windows %LOCALAPPDATA%/electron/Cache.
+    # Override via electron_config_cache so one workspace path works on all OSes in CI.
+    - name: Cache Electron download
+      uses: actions/cache@v6
+      with:
+        path: ${{ github.workspace }}/.cache/electron
+        key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
 
     - name: Setup Node.js
       uses: actions/setup-node@v5
@@ -81,9 +98,26 @@ jobs:
             file-pattern: "release-builds/tessel-win32-x64/**/*"
 
     runs-on: ${{ matrix.os }}
+    env:
+      electron_config_cache: ${{ github.workspace }}/.cache/electron
 
     steps:
     - uses: actions/checkout@v5
+
+    - name: Cache FFmpeg
+      uses: actions/cache@v6
+      with:
+        path: vendor/ffmpeg
+        key: ${{ runner.os }}-ffmpeg-${{ hashFiles('scripts/ffmpeg-hashes.json') }}
+
+    # Electron 44 uses @electron/get 5.x; default cache dirs via env-paths('electron'):
+    # Linux ~/.cache/electron, macOS ~/Library/Caches/electron, Windows %LOCALAPPDATA%/electron/Cache.
+    # Override via electron_config_cache so one workspace path works on all OSes in CI.
+    - name: Cache Electron download
+      uses: actions/cache@v6
+      with:
+        path: ${{ github.workspace }}/.cache/electron
+        key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
 
     - name: Setup Node.js
       uses: actions/setup-node@v5
