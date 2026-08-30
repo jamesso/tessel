@@ -1,4 +1,5 @@
 require('./ffmpeg-path.test.js');
+require('./install-ffmpeg-pin.test.js');
 require('./mosaic.test.js');
 require('./output-settings.test.js');
 require('./timecode.test.js');
