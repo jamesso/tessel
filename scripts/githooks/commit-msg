@@ -1,8 +1,7 @@
 #!/bin/sh
 # Strip AI co-author / "Generated with" trailers from every commit (tool-agnostic).
-# Installed copy: .git/hooks/commit-msg (shared by worktrees of this repo).
-# Fresh clones do not get .git/hooks; copy this file there, or set core.hooksPath
-# to scripts/githooks.
+# npm install runs prepare, which sets core.hooksPath to scripts/githooks (local to
+# the repo). Requires python3 on PATH. Do not copy this file into .git/hooks.
 set -e
 msgfile="$1"
 if [ ! -f "$msgfile" ]; then

@@ -6,7 +6,7 @@ product
 
 ## Platform
 
-web
+desktop
 
 ## Users
 
