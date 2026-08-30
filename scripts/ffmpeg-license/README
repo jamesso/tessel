@@ -1,0 +1,13 @@
+FFmpeg license text for macOS installs
+
+The Martin Riedl macOS FFmpeg zip contains only the ffmpeg binary, so
+install-ffmpeg.js copies this file to vendor/ffmpeg/LICENSE when the
+darwin pin has no licenseInArchive.
+
+General FFmpeg licensing information:
+  https://ffmpeg.org/legal.html
+
+LICENSE.txt is the GNU General Public License v3 text shipped in the
+BtbN FFmpeg-Builds linux archive pinned in scripts/ffmpeg-hashes.json
+(autobuild-2026-07-31-14-10 / ffmpeg-n7.1.5-12-g1fdbca85aa-linux64-gpl-7.1/LICENSE.txt).
+It is FFmpeg's license text from that build, not terms invented for Tessel.
