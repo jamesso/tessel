@@ -29,16 +29,16 @@ to `vendor/ffmpeg/`.
 | Platform | URL | SHA-256 |
 |----------|-----|---------|
 | darwin-arm64 | https://ffmpeg.martin-riedl.de/download/macos/arm64/1741000090_7.1.1/ffmpeg.zip | `e18c39a330ad783c33d6d7b47784e82a42f8acdbb497a1f73550f1bc0e830d44` |
-| linux-x64 | https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-16-13-00/ffmpeg-n7.1.5-16-g9a4bb2c579-linux64-gpl-7.1.tar.xz | `21a55e0ad14423572523c04425fd2f7a03bee0436d25a36e629362b99e45fb00` |
-| win32-x64 | https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-16-13-00/ffmpeg-n7.1.5-16-g9a4bb2c579-win64-gpl-7.1.zip | `907ae59ae94d39561b9e03f6d5b0ec4a2778df1e75c763c9a0ddbae266415860` |
+| linux-x64 | https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-07-31-14-10/ffmpeg-n7.1.5-12-g1fdbca85aa-linux64-gpl-7.1.tar.xz | `c1e6caf48923dd8e6bc5e54d51ba70c321175b8162ae9c414c392990e72f0e79` |
+| win32-x64 | https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-07-31-14-10/ffmpeg-n7.1.5-12-g1fdbca85aa-win64-gpl-7.1.zip | `c067a1ca58f4fc4449f4bab0890fbcd65cbb3e5f46e066cf9c768e06c0c1d4d9` |
 
 ## `ffmpeg -version` (first line)
 
 | Platform | Version string |
 |----------|----------------|
 | darwin-arm64 | `ffmpeg version 7.1.1-https://www.martin-riedl.de Copyright (c) 2000-2025 the FFmpeg developers` |
-| linux-x64 | `ffmpeg version 7.1.5 Copyright (c) 2000-2025 the FFmpeg developers` (from BtbN 7.1 branch tag; not run on executor OS) |
-| win32-x64 | `ffmpeg version 7.1.5 Copyright (c) 2000-2025 the FFmpeg developers` (from BtbN 7.1 branch tag; not run on executor OS) |
+| linux-x64 | `ffmpeg version n7.1.5-12-g1fdbca85aa-20260731 Copyright (c) 2000-2025 the FFmpeg developers` (from BtbN 7.1 branch tag; not run on executor OS) |
+| win32-x64 | `ffmpeg version n7.1.5-12-g1fdbca85aa-20260731 Copyright (c) 2000-2025 the FFmpeg developers` (from BtbN 7.1 branch tag; not run on executor OS) |
 
 ## Previous binary (pre-051, darwin-arm64)
 

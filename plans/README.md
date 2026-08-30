@@ -82,7 +82,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 064 | Swallow sibling duration-probe rejections after kill | P1 | S | — (before 066) | DONE |
 | 065 | Block import/export while Convert is running | P1 | S | — (before 083) | TODO |
 | 066 | Unique temp name if a recovery sibling already exists | P1 | S | 064 | TODO |
-| 067 | Re-pin BtbN FFmpeg to a month-end 7.1 build | P1 | M | — (before 069) | TODO |
+| 067 | Re-pin BtbN FFmpeg to a month-end 7.1 build | P1 | M | — (before 069) | DONE |
 | 068 | About Tessel on Windows and Linux | P2 | S | — | DONE |
 | 069 | Ship darwin FFmpeg LICENSE next to the binary | P2 | S | 067 | TODO |
 | 070 | Fix PRODUCT.md, AGENTS.md, README, plans framing | P2 | S | — | DONE |

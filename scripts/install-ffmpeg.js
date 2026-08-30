@@ -9,9 +9,12 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
+const { pinMatches } = require('./install-ffmpeg-pin');
+
 const ROOT = path.join(__dirname, '..');
 const HASHES = JSON.parse(fs.readFileSync(path.join(__dirname, 'ffmpeg-hashes.json'), 'utf8'));
 const OUT_DIR = path.join(ROOT, 'vendor', 'ffmpeg');
+const PIN_STAMP = path.join(OUT_DIR, 'pin.json');
 
 function platformKey() {
     if (process.platform === 'darwin' && process.arch === 'arm64') return 'darwin-arm64';
@@ -65,12 +68,46 @@ function extractArchive(archivePath, destDir) {
     throw new Error(`Unsupported archive format: ${archivePath}`);
 }
 
+function readPinStamp() {
+    if (!fs.existsSync(PIN_STAMP)) return null;
+    try {
+        return JSON.parse(fs.readFileSync(PIN_STAMP, 'utf8'));
+    } catch {
+        return null;
+    }
+}
+
+function writePinStamp(key, config) {
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    fs.writeFileSync(
+        PIN_STAMP,
+        `${JSON.stringify({ archiveSha256: config.archiveSha256, platform: key }, null, 2)}\n`,
+    );
+}
+
+function removeInstalled(key) {
+    const binName = key === 'win32-x64' ? 'ffmpeg.exe' : 'ffmpeg';
+    const binDest = path.join(OUT_DIR, binName);
+    const licenseDest = path.join(OUT_DIR, 'LICENSE');
+    if (fs.existsSync(binDest)) fs.rmSync(binDest);
+    if (fs.existsSync(PIN_STAMP)) fs.rmSync(PIN_STAMP);
+    if (fs.existsSync(licenseDest)) fs.rmSync(licenseDest);
+}
+
 function installPlatform(key, config) {
     const binName = key === 'win32-x64' ? 'ffmpeg.exe' : 'ffmpeg';
     const binDest = path.join(OUT_DIR, binName);
-    if (fs.existsSync(binDest)) {
+    const expectedPin = { archiveSha256: config.archiveSha256, platform: key };
+    const stamp = readPinStamp();
+
+    if (fs.existsSync(binDest) && pinMatches(stamp, expectedPin)) {
         console.log(`ffmpeg already installed at ${binDest}`);
         return;
+    }
+
+    if (fs.existsSync(binDest) || stamp) {
+        console.log(`Removing stale FFmpeg install for ${key}...`);
+        removeInstalled(key);
     }
 
     console.log(`Downloading FFmpeg for ${key} from ${config.vendor}...`);
@@ -114,6 +151,7 @@ function installPlatform(key, config) {
             fs.rmSync(tmpArchive, { force: true });
         }
 
+        writePinStamp(key, config);
         console.log(`Installed FFmpeg to ${binDest}`);
     });
 }
