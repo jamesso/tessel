@@ -15,6 +15,7 @@ const ROOT = path.join(__dirname, '..');
 const HASHES = JSON.parse(fs.readFileSync(path.join(__dirname, 'ffmpeg-hashes.json'), 'utf8'));
 const OUT_DIR = path.join(ROOT, 'vendor', 'ffmpeg');
 const PIN_STAMP = path.join(OUT_DIR, 'pin.json');
+const FALLBACK_LICENSE = path.join(__dirname, 'ffmpeg-license', 'LICENSE.txt');
 
 function platformKey() {
     if (process.platform === 'darwin' && process.arch === 'arm64') return 'darwin-arm64';
@@ -94,6 +95,28 @@ function removeInstalled(key) {
     if (fs.existsSync(licenseDest)) fs.rmSync(licenseDest);
 }
 
+function copyLicense(config, tmpExtract) {
+    const licenseDest = path.join(OUT_DIR, 'LICENSE');
+    if (config.licenseInArchive) {
+        const licenseSrc = path.join(tmpExtract, config.licenseInArchive);
+        if (fs.existsSync(licenseSrc)) {
+            fs.copyFileSync(licenseSrc, licenseDest);
+            return;
+        }
+    }
+    if (config.licenseInArchive === null && fs.existsSync(FALLBACK_LICENSE)) {
+        fs.copyFileSync(FALLBACK_LICENSE, licenseDest);
+    }
+}
+
+function ensureLicense(config) {
+    const licenseDest = path.join(OUT_DIR, 'LICENSE');
+    if (fs.existsSync(licenseDest)) return;
+    if (config.licenseInArchive === null && fs.existsSync(FALLBACK_LICENSE)) {
+        fs.copyFileSync(FALLBACK_LICENSE, licenseDest);
+    }
+}
+
 function installPlatform(key, config) {
     const binName = key === 'win32-x64' ? 'ffmpeg.exe' : 'ffmpeg';
     const binDest = path.join(OUT_DIR, binName);
@@ -101,6 +124,7 @@ function installPlatform(key, config) {
     const stamp = readPinStamp();
 
     if (fs.existsSync(binDest) && pinMatches(stamp, expectedPin)) {
+        ensureLicense(config);
         console.log(`ffmpeg already installed at ${binDest}`);
         return;
     }
@@ -140,12 +164,7 @@ function installPlatform(key, config) {
             fs.copyFileSync(binSrc, binDest);
             fs.chmodSync(binDest, 0o755);
 
-            if (config.licenseInArchive) {
-                const licenseSrc = path.join(tmpExtract, config.licenseInArchive);
-                if (fs.existsSync(licenseSrc)) {
-                    fs.copyFileSync(licenseSrc, path.join(OUT_DIR, 'LICENSE'));
-                }
-            }
+            copyLicense(config, tmpExtract);
         } finally {
             fs.rmSync(tmpExtract, { recursive: true, force: true });
             fs.rmSync(tmpArchive, { force: true });
