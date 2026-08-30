@@ -187,15 +187,6 @@ jobs:
         - Cancel an in-progress convert; grid stays filled after success
         - Bundled FFmpeg 7.1 on macOS, Linux, and Windows
         - MP4, MOV, M4V, WebM, AVI, and MKV inputs
-        
-        ### Changes
-        - Move output settings into an Advanced dialog with themed lists and Hugeicons
-        - Pad shorter clips with black or a freeze frame
-        - Pick which occupied cell supplies audio
-        - Import and export mosaic layout JSON from the File menu
-        - Copy a clip onto an empty cell instead of only swapping
-        - Ship hash-pinned FFmpeg 7.1 instead of ffmpeg-static
-        - Write encode temps as *.tessel-partial.mp4 so FFmpeg can mux the file
         EOF
 
     - name: Create GitHub Release
