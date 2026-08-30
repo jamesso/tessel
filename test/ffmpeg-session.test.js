@@ -328,6 +328,48 @@ test('cancel during encode sends video:cancelled without video:done or video:err
     assert.ok(!sent.some((s) => s.channel === 'video:error'));
 });
 
+test('encode avoids an existing recovery partial sibling', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const spawnCalls = [];
+    const wrappedSpawn = (...args) => {
+        spawnCalls.push(args);
+        return spawn(...args);
+    };
+    const recoveryPath = '/tmp/out.tessel-partial.mp4';
+    const { fs } = createTrackingFs([recoveryPath]);
+    const { session } = createSession(wrappedSpawn, { fs });
+
+    session.convertVideo(defaultConvertPayload({ filePath: '/tmp/out.mp4' }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+
+    const encodeArgs = spawnCalls.find((args) => !args[1].includes('-hide_banner'))[1];
+    assert.notEqual(encodeArgs[encodeArgs.length - 1], recoveryPath);
+    assert.equal(encodeArgs[encodeArgs.length - 1], '/tmp/out.tessel-partial-2.mp4');
+});
+
+test('cancel of retry unlinks only that job temp not the kept recovery file', async () => {
+    const { spawn, probes, encodes } = createSpawnFake();
+    const recoveryPath = '/out.tessel-partial.mp4';
+    const { fs, calls } = createTrackingFs([recoveryPath]);
+    const { session, sent } = createSession(spawn, { fs });
+
+    session.convertVideo(defaultConvertPayload({ filePath: '/out.mp4' }));
+
+    await waitUntil(() => probes.length === 1);
+    probes[0].stderr.emit('data', 'Duration: 00:00:01.00\n');
+    await waitUntil(() => encodes.length === 1);
+    session.killActiveFfmpeg({ notify: 'cancelled' });
+    encodes[0].emit('close', 1);
+
+    await waitUntil(() => sent.some((s) => s.channel === 'video:cancelled'));
+
+    assert.deepEqual(calls.unlinks, ['/out.tessel-partial-2.mp4']);
+    assert.ok(!calls.unlinks.includes(recoveryPath));
+});
+
 test('encode writes to temp path not destination', async () => {
     const { spawn, probes, encodes } = createSpawnFake();
     const spawnCalls = [];

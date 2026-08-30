@@ -31,6 +31,39 @@ test('tempOutputPath keeps a muxable .mp4 extension on the sibling temp', () => 
     assert.equal(tempOutputPath('/tmp/noext'), '/tmp/noext.tessel-partial.mp4');
 });
 
+test('tempOutputPath skips an existing default recovery sibling', () => {
+    const exists = new Set(['/tmp/out.tessel-partial.mp4']);
+    const path = tempOutputPath('/tmp/out.mp4', (p) => exists.has(p));
+    assert.equal(path, '/tmp/out.tessel-partial-2.mp4');
+});
+
+test('tempOutputPath increments until a free numbered sibling', () => {
+    const exists = new Set([
+        '/tmp/out.tessel-partial.mp4',
+        '/tmp/out.tessel-partial-2.mp4',
+        '/tmp/out.tessel-partial-3.mp4',
+    ]);
+    const path = tempOutputPath('/tmp/out.mp4', (p) => exists.has(p));
+    assert.equal(path, '/tmp/out.tessel-partial-4.mp4');
+});
+
+test('tempOutputPath collision siblings always end in .mp4', () => {
+    const exists = new Set(['/Users/me/out.tessel-partial.MP4']);
+    const path = tempOutputPath('/Users/me/out.MP4', (p) => exists.has(p));
+    assert.equal(path, '/Users/me/out.tessel-partial-2.mp4');
+});
+
+test('tempOutputPath throws when numbered siblings are exhausted', () => {
+    const exists = new Set(['/tmp/out.tessel-partial.mp4']);
+    for (let n = 2; n <= 100; n++) {
+        exists.add(`/tmp/out.tessel-partial-${n}.mp4`);
+    }
+    assert.throws(
+        () => tempOutputPath('/tmp/out.mp4', (p) => exists.has(p)),
+        /unique partial output path/i,
+    );
+});
+
 test('preload send whitelist includes video:cancel', () => {
     const src = read('preload.js');
     assert.match(src, /validChannels = \['video:convert', 'video:cancel'\]/);
