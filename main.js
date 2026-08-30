@@ -254,6 +254,12 @@ function createMainWindow() {
 }
 
 function createAboutWindow() {
+    if (aboutWindow && !aboutWindow.isDestroyed()) {
+        aboutWindow.show()
+        aboutWindow.focus()
+        return
+    }
+
     aboutWindow = new BrowserWindow({
         title: 'About Tessel',
         width: 300,
@@ -270,6 +276,10 @@ function createAboutWindow() {
     attachNavigationGuard(aboutWindow, appHtmlRoot, shell)
 
     aboutWindow.loadFile(path.join(__dirname, 'app/about.html'))
+
+    aboutWindow.on('closed', () => {
+        aboutWindow = null
+    })
 }
 
 app.on('ready', () => {
@@ -319,6 +329,16 @@ const menu = [
             isMac ? { role: 'close' } : { role: 'quit' },
         ],
     },
+    ...(!isMac
+        ? [
+            {
+                label: 'Help',
+                submenu: [
+                    { label: 'About Tessel', click: createAboutWindow },
+                ],
+            },
+        ]
+        : []),
     ...(isDev 
         ? [
             {

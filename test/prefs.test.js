@@ -277,6 +277,17 @@ test('File menu import filters missing paths and applies prefs:imported', () => 
     assert.match(index, /persistPrefs/);
 });
 
+test('non-Mac Help menu About Tessel calls createAboutWindow', () => {
+    const main = readRepo('main.js');
+    assert.match(main, /label:\s*'Help'/);
+    const helpIdx = main.indexOf("label: 'Help'");
+    const block = main.slice(helpIdx, helpIdx + 280);
+    assert.match(block, /About Tessel/);
+    assert.match(block, /click:\s*createAboutWindow/);
+    const guard = main.lastIndexOf('!isMac', helpIdx);
+    assert.ok(guard !== -1 && helpIdx - guard < 160, 'Help is on the !isMac branch');
+});
+
 test('resolveSaveDefaultPath uses lastSaveDir when it exists', () => {
     const desktop = path.join('/Users/me', 'Desktop');
     const last = path.join('/Users/me', 'Exports');
