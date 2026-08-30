@@ -8,10 +8,14 @@ function createFakeProcess() {
     proc.stderr = new EventEmitter();
     proc.stdout = new EventEmitter();
     proc.killCalls = 0;
+    proc.closed = false;
     proc.kill = function () {
         proc.killCalls++;
         setImmediate(() => proc.emit('close', 0));
     };
+    proc.on('close', () => {
+        proc.closed = true;
+    });
     return proc;
 }
 
@@ -261,33 +265,48 @@ test('probe failure sends Could not read video duration', async () => {
 test('multi-path probe failure kills sibling probes and allows a new convert', async () => {
     const { spawn, probes } = createSpawnFake();
     const { session, sent } = createSession(spawn);
+    let unhandledRejection;
+    const onUnhandledRejection = (reason) => {
+        unhandledRejection = reason;
+    };
+    process.on('unhandledRejection', onUnhandledRejection);
 
-    session.convertVideo(defaultConvertPayload({
-        vidPath1: '/a.mp4',
-        vidPath2: '/b.mp4',
-        vidPath3: '/c.mp4',
-        vidPath4: '/d.mp4',
-    }));
+    try {
+        session.convertVideo(defaultConvertPayload({
+            vidPath1: '/a.mp4',
+            vidPath2: '/b.mp4',
+            vidPath3: '/c.mp4',
+            vidPath4: '/d.mp4',
+        }));
 
-    await waitUntil(() => probes.length >= 2);
-    probes[0].emit('close', 1);
+        await waitUntil(() => probes.length >= 3);
+        probes[0].emit('close', 1);
 
-    await waitUntil(() => sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Could not read video duration'));
+        await waitUntil(() => sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Could not read video duration'));
+        await waitUntil(() => probes.every((p) => p.closed));
 
-    assert.ok(!sent.some((s) => s.channel === 'video:cancelled'));
-    assert.ok(!sent.some((s) => s.channel === 'video:done'));
-    assert.equal(session.isBusy(), false);
+        const durationErrors = sent.filter((s) => s.channel === 'video:error' && s.args[0] === 'Could not read video duration');
+        assert.equal(durationErrors.length, 1);
+        assert.ok(!sent.some((s) => s.channel === 'video:error' && s.args[0] === 'Unexpected error'));
+        assert.equal(unhandledRejection, undefined);
 
-    for (let i = 1; i < probes.length; i++) {
-        assert.ok(probes[i].killCalls >= 1, `expected probe ${i} to be killed`);
+        assert.ok(!sent.some((s) => s.channel === 'video:cancelled'));
+        assert.ok(!sent.some((s) => s.channel === 'video:done'));
+        assert.equal(session.isBusy(), false);
+
+        for (let i = 1; i < probes.length; i++) {
+            assert.ok(probes[i].killCalls >= 1, `expected probe ${i} to be killed`);
+        }
+
+        const eventsBeforeRetry = sent.length;
+        session.convertVideo(defaultConvertPayload({ vidPath1: '/retry.mp4' }));
+        await waitUntil(() => probes.length >= 4);
+
+        const retryEvents = sent.slice(eventsBeforeRetry);
+        assert.ok(!retryEvents.some((s) => s.channel === 'video:error' && s.args[0] === 'A conversion is already running'));
+    } finally {
+        process.off('unhandledRejection', onUnhandledRejection);
     }
-
-    const eventsBeforeRetry = sent.length;
-    session.convertVideo(defaultConvertPayload({ vidPath1: '/retry.mp4' }));
-    await waitUntil(() => probes.length >= 4);
-
-    const retryEvents = sent.slice(eventsBeforeRetry);
-    assert.ok(!retryEvents.some((s) => s.channel === 'video:error' && s.args[0] === 'A conversion is already running'));
 });
 
 test('cancel during encode sends video:cancelled without video:done or video:error', async () => {
