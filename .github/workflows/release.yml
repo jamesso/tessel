@@ -11,10 +11,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: '.nvmrc'
         cache: 'npm'
@@ -31,7 +31,7 @@ jobs:
       version-changed: ${{ steps.check.outputs.changed }}
       version: ${{ steps.get-version.outputs.version }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -83,10 +83,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: '.nvmrc'
         cache: 'npm'
@@ -120,7 +120,7 @@ jobs:
         Compress-Archive -Path "tessel-windows-${{ matrix.arch }}" -DestinationPath "tessel-windows-${{ matrix.arch }}.zip"
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.artifact-name }}
         path: |
@@ -136,10 +136,10 @@ jobs:
       contents: write
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download all artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v7
       with:
         path: artifacts
 
