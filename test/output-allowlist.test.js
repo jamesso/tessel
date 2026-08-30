@@ -78,6 +78,7 @@ test('renderer reads and persists padMode from output-pad', () => {
     const js = read('app/js/index.js');
     assert.match(js, /padMode: document\.getElementById\('output-pad'\)\.value/);
     assert.match(js, /getElementById\('output-pad'\)\.value = prefs\.padMode === 'freeze' \? 'freeze' : 'black'/);
+    assert.match(js, /function collectPrefs\(\)[\s\S]*?padMode:\s*settings\.padMode/);
     assert.match(js, /'output-pad'/);
 });
 
