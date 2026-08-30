@@ -74,6 +74,7 @@ Repo: Tessel (Electron desktop mosaic-video app). There is **no lint/typecheck**
 | 060 | Copy a clip onto an empty cell | P3 | S | 049, 053 (preferred) | DONE |
 | 061 | Import and export the session prefs JSON | P3 | S | — | DONE |
 | 062 | Spike freeze or loop for short cells instead of black `tpad` | P3 | M | — (not parallel 044/049) | DONE |
+| 063 | Persist freeze pad in session prefs and layout export | P3 | S | 062 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 

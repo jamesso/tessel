@@ -195,6 +195,7 @@ function collectPrefs() {
         height: settings.height,
         audio: settings.audio,
         fit: settings.fit,
+        padMode: settings.padMode,
         durationMode: settings.durationMode,
         seconds: settings.seconds,
         lastSaveDir: lastSaveDir,
