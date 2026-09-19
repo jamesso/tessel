@@ -215,3 +215,8 @@ buck-out/
 */fastlane/report.xml
 */fastlane/Preview.html
 */fastlane/screenshots
+
+# Local agent tooling state (scratch, machine-specific session/worktree ids).
+# Canonical plan ledgers live in plans/, not here.
+.impeccable/
+.superpowers/
