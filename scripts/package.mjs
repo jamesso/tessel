@@ -60,7 +60,9 @@ const packagerOptions = {
     arch: target.arch,
     icon: path.join(rootDir, target.icon),
     prune: true,
-    out: path.join(rootDir, 'release-builds'),
+    // CI keeps the Electron download cache in the workspace (electron_config_cache).
+    ignore: [/^\/\.cache($|\/)/],
+    out:path.join(rootDir, 'release-builds'),
     afterComplete: [
         async ({ buildPath, platform, arch }) => {
             const electronPath = getPackagedElectronExecutablePath({
