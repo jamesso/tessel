@@ -13,7 +13,7 @@ jobs:
     env:
       electron_config_cache: ${{ github.workspace }}/.cache/electron
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
 
     - name: Cache FFmpeg
       uses: actions/cache@v6
@@ -31,7 +31,7 @@ jobs:
         key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
 
     - name: Setup Node.js
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v7
       with:
         node-version-file: '.nvmrc'
         cache: 'npm'
@@ -48,7 +48,7 @@ jobs:
       version-changed: ${{ steps.check.outputs.changed }}
       version: ${{ steps.get-version.outputs.version }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -102,7 +102,7 @@ jobs:
       electron_config_cache: ${{ github.workspace }}/.cache/electron
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
 
     - name: Cache FFmpeg
       uses: actions/cache@v6
@@ -120,7 +120,7 @@ jobs:
         key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
 
     - name: Setup Node.js
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v7
       with:
         node-version-file: '.nvmrc'
         cache: 'npm'
@@ -154,7 +154,7 @@ jobs:
         Compress-Archive -Path "tessel-windows-${{ matrix.arch }}" -DestinationPath "tessel-windows-${{ matrix.arch }}.zip"
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.artifact-name }}
         path: |
@@ -170,10 +170,10 @@ jobs:
       contents: write
     
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
 
     - name: Download all artifacts
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         path: artifacts
 
